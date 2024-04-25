@@ -3,6 +3,7 @@ import subprocess
 import time
 import shutil
 import geopandas as gpd
+from pathlib import Path
 
 def replace_parameters(filename, replacements):
     with open(filename, 'r') as f:
@@ -53,9 +54,12 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     ### get force extend
     if not os.path.exists(f"{temp_folder}/{project_name}"):
         os.makedirs(f"{temp_folder}/{project_name}")
+
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{Path(scripts_skel).parent}"])
+
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/datacube-definition.prj")
 
-    cmd = f"docker run -v {local_dir} -v {force_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -v {local_dir} -v {force_dir} davidfrantz/force " \
            f"force-tile-extent {aoi} {force_skel} {temp_folder}/{project_name}/tile_extent.txt"
 
     if hold == True:
@@ -70,7 +74,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         os.makedirs(f"{mask_folder}/{project_name}")
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{mask_folder}/{project_name}/datacube-definition.prj")
 
-    cmd = f"docker run -v {local_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -v {local_dir} davidfrantz/force " \
           f"force-cube -o {mask_folder}/{project_name} " \
           f"{aoi}"
 
@@ -81,7 +85,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
 
 
     ###mask mosaic
-    cmd = f"docker run -v {local_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -v {local_dir} davidfrantz/force " \
           f"force-mosaic {mask_folder}/{project_name}"
 
     if hold == True:
@@ -144,7 +148,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     # Replace parameters in the file
     replace_parameters(f"{temp_folder}/{project_name}/dswi_harmonic_tss.prm", replacements)
 
-    cmd = f"docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
           f"force-higher-level {temp_folder}/{project_name}/dswi_harmonic_tss.prm"
 
     if hold == True:
@@ -231,7 +235,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     # Replace parameters in the file
     replace_parameters(f"{temp_folder}/{project_name}/dsw_harmonic_tsi.prm", replacements)
 
-    cmd = f"docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
           f"force-higher-level {temp_folder}/{project_name}/dsw_harmonic_tsi.prm"
 
     if hold == True:

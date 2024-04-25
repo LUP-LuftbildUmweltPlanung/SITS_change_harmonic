@@ -15,29 +15,29 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "Kai_2024",
-    "aoi": "/uge_mount/FORCE/new_struc/data/Thueringen_Kai/kai_3035.shp",
+    "project_name": "Th_2024",
+    "aoi": "/uge_mount/force_sits/process/data/Thueringen/th_25833.shp",
 
     #TimeSeriesStack (TSS)
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B,
-    "TSS_DATE_RANGE": "2018-01-01 2024-04-23",# Will also be Prediction Time Range for TSI
+    "TSS_DATE_RANGE": "2018-01-01 2024-04-25",# Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI)
-    "TSI_Sensors": "SEN2A SEN2B",#"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B",
-    "TSI_DATE_RANGE": "2016-01-01 2018-01-01",# Ref Period for TSI
+    "TSI_Sensors": "LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B",#"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B",
+    "TSI_DATE_RANGE": "2010-01-01 2018-01-01",# Ref Period for TSI
     "Trend": True,
     ###########################
     ##HARMONIC Postprocessing##
     ###########################
-    "residuals": "safe", # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": rawa residuals will be used for further processes
-    "int10p_whole": False,
+    "residuals": "thresholding", # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": rawa residuals will be used for further processes
+    "int10p_whole": True,
     "firstdate_whole": False,
     "intp10_period": False,
     "mosaic": True,
 
     "times_std": -1.5,
     # Define start and end dates and period length
-    "start_date": "2019-01",
+    "start_date": "2018-01",
     "end_date": "2024-12",
     "period_length": 12,
     }
@@ -55,7 +55,7 @@ advanced_params = {
 
     "TSI_ABOVE_NOISE": 3, #noise filtering in spectral values above 3 x std
     "TSI_BELOW_NOISE": 1, #get back values from qai masking below single std
-    "TSI_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
+    "TSI_SPECTRAL_ADJUST": "TRUE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
     "hold": False,  # if True, cmd must be closed manually
 

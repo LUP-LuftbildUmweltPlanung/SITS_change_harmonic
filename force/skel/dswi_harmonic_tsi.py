@@ -102,7 +102,7 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     # # RENDVI2 = (RE2 - RED) / (RE2 + RED)
     # rendvi2 = (inarray[:, re2] - inarray[:, red]) / (inarray[:, re2] + inarray[:, red])
     # # DSWI = (BNIR + GREEN) / (SWIR1 + RED)
-    dswi = (inarray[:, bnir] + inarray[:, green]) / (inarray[:, swir1] + inarray[:, red])
+    dswi = (inarray[:, nir] + inarray[:, green]) / (inarray[:, swir1] + inarray[:, red])
     # # MSI = SWIR1 / BNIR
     # msi = inarray[:, swir1] / inarray[:, bnir]
     # # NDWI = (BNIR - SWIR1) / (BNIR + SWIR1)

@@ -14,7 +14,7 @@ from utils.residuals_utils import calculate_residuals
 
 
 startzeit = time.time()
-def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,mosaic,tsi_lst,tss_lst,times_std,start_date,end_date,period_length,temp_folder,proc_folder):
+def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,mosaic,tsi_lst,tss_lst,times_std,start_date,end_date,period_length,temp_folder,proc_folder, **kwargs):
     if not tsi_lst or not tss_lst:
         tsi_lst = glob.glob(f"{temp_folder}/{project_name}/tiles_tsi/X*/*.tif")
         tss_lst = glob.glob(f"{temp_folder}/{project_name}/tiles_tss/X*/*.tif")
