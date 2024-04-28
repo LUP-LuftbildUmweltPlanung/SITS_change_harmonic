@@ -30,9 +30,9 @@ params = {
     ##HARMONIC Postprocessing##
     ###########################
     "residuals": "thresholding", # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": rawa residuals will be used for further processes
-    "int10p_whole": True,
+    "int10p_whole": False,
     "firstdate_whole": False,
-    "intp10_period": False,
+    "intp10_period": True,
     "mosaic": True,
 
     "times_std": -1.5,
@@ -60,16 +60,20 @@ advanced_params = {
     "hold": False,  # if True, cmd must be closed manually
 
     #Streaming Mechnism
-    "NTHREAD_READ": 7,  # 4,
-    "NTHREAD_COMPUTE": 7,  # 11,
-    "NTHREAD_WRITE": 2,  # 2,
-    "BLOCK_SIZE": 1000,
+    "TSS_NTHREAD_READ": 7,  # 4,
+    "TSS_NTHREAD_COMPUTE": 7,  # 11,
+    "TSS_NTHREAD_WRITE": 2,  # 2,
+    "TSS_BLOCK_SIZE": 1000,
+    "TSI_NTHREAD_READ": 7,  # 4,
+    "TSI_NTHREAD_COMPUTE": 7,  # 11,
+    "TSI_NTHREAD_WRITE": 2,  # 2,
+    "TSI_BLOCK_SIZE": 300,
     }
 
 
 if __name__ == '__main__':
     force_harmonic(**params,**path_params,**advanced_params)
-    harmonic(**params,**path_params)
+    harmonic(**params,**path_params,**advanced_params)
 
 
 

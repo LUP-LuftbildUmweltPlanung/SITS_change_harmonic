@@ -85,7 +85,7 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     #re1 = np.argwhere(bandnames == b'REDEDGE1')[0][0]
     #re2 = np.argwhere(bandnames == b'REDEDGE2')[0][0]
     nir = np.argwhere(bandnames == b'NIR')[0][0]
-    bnir = np.argwhere(bandnames == b'BROADNIR')[0][0]
+    #bnir = np.argwhere(bandnames == b'BROADNIR')[0][0]
     swir1 = np.argwhere(bandnames == b'SWIR1')[0][0]
     #swir2 = np.argwhere(bandnames == b'SWIR2')[0][0]
     #print(bandnames)

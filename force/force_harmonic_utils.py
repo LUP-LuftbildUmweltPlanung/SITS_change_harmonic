@@ -44,9 +44,9 @@ def check_and_reproject_shapefile(shapefile_path, target_epsg=3035):
     else:
         print("Shapefile is already in EPSG: 3035")
         return shapefile_path
-def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Trend,force_dir,local_dir,force_skel,scripts_skel,temp_folder,
-    mask_folder,TSS_SPECTRAL_ADJUST,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_SPECTRAL_ADJUST,
-    TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,NTHREAD_READ,NTHREAD_COMPUTE,NTHREAD_WRITE,BLOCK_SIZE,**kwargs):
+def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Trend,force_dir,local_dir,force_skel,scripts_skel,temp_folder,mask_folder,
+                   TSS_SPECTRAL_ADJUST,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_SPECTRAL_ADJUST,TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,TSS_NTHREAD_READ,TSS_NTHREAD_COMPUTE,
+                   TSS_NTHREAD_WRITE,TSS_BLOCK_SIZE,TSI_NTHREAD_READ,TSI_NTHREAD_COMPUTE,TSI_NTHREAD_WRITE,TSI_BLOCK_SIZE,**kwargs):
 
     startzeit = time.time()
 
@@ -122,13 +122,13 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         f'DIR_MASK = NULL':f'DIR_MASK = {mask_folder}/{project_name}',
         f'BASE_MASK = NULL':f'BASE_MASK = {os.path.basename(aoi).replace(".shp",".tif")}',
         # PARALLEL PROCESSING
-        f'NTHREAD_READ = 8':f'NTHREAD_READ = {NTHREAD_READ}',
-        f'NTHREAD_COMPUTE = 22':f'NTHREAD_COMPUTE = {NTHREAD_COMPUTE}',
-        f'NTHREAD_WRITE = 4':f'NTHREAD_WRITE = {NTHREAD_WRITE}',
+        f'NTHREAD_READ = 8':f'NTHREAD_READ = {TSS_NTHREAD_READ}',
+        f'NTHREAD_COMPUTE = 22':f'NTHREAD_COMPUTE = {TSS_NTHREAD_COMPUTE}',
+        f'NTHREAD_WRITE = 4':f'NTHREAD_WRITE = {TSS_NTHREAD_WRITE}',
         # PROCESSING EXTENT AND RESOLUTION
         f'X_TILE_RANGE = 0 0':f'X_TILE_RANGE = {X_TILE_RANGE}',
         f'Y_TILE_RANGE = 0 0':f'Y_TILE_RANGE = {Y_TILE_RANGE}',
-        f'BLOCK_SIZE = 0':f'BLOCK_SIZE = {BLOCK_SIZE}',
+        f'BLOCK_SIZE = 0':f'BLOCK_SIZE = {TSS_BLOCK_SIZE}',
         # SENSOR ALLOW-LIST
         f'SENSORS = LND08 LND09 SEN2A SEN2B':f'SENSORS = {TSS_Sensors}',
         f'SPECTRAL_ADJUST = FALSE':f'SPECTRAL_ADJUST = {TSS_SPECTRAL_ADJUST}',
@@ -151,10 +151,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     cmd = f"sudo docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
           f"force-higher-level {temp_folder}/{project_name}/dswi_harmonic_tss.prm"
 
-    if hold == True:
-        subprocess.run(['xterm', '-hold', '-e', cmd])
-    else:
-        subprocess.run(['xterm', '-e', cmd])
+    #if hold == True:
+        #subprocess.run(['xterm', '-hold', '-e', cmd])
+    #else:
+        #subprocess.run(['xterm', '-e', cmd])
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
     #analysis_tsi
     ###force param
@@ -210,13 +210,13 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         f'DIR_MASK = NULL': f'DIR_MASK = {mask_folder}/{project_name}',
         f'BASE_MASK = NULL': f'BASE_MASK = {os.path.basename(aoi).replace(".shp", ".tif")}',
         # PARALLEL PROCESSING
-        f'NTHREAD_READ = 8': f'NTHREAD_READ = {NTHREAD_READ}',
-        f'NTHREAD_COMPUTE = 22': f'NTHREAD_COMPUTE = {NTHREAD_COMPUTE}',
-        f'NTHREAD_WRITE = 4': f'NTHREAD_WRITE = {NTHREAD_WRITE}',
+        f'NTHREAD_READ = 8': f'NTHREAD_READ = {TSI_NTHREAD_READ}',
+        f'NTHREAD_COMPUTE = 22': f'NTHREAD_COMPUTE = {TSI_NTHREAD_COMPUTE}',
+        f'NTHREAD_WRITE = 4': f'NTHREAD_WRITE = {TSI_NTHREAD_WRITE}',
         # PROCESSING EXTENT AND RESOLUTION
         f'X_TILE_RANGE = 0 0': f'X_TILE_RANGE = {TSI_X_TILE_RANGE}',
         f'Y_TILE_RANGE = 0 0': f'Y_TILE_RANGE = {TSI_Y_TILE_RANGE}',
-        f'BLOCK_SIZE = 0': f'BLOCK_SIZE = {BLOCK_SIZE}',
+        f'BLOCK_SIZE = 0': f'BLOCK_SIZE = {TSI_BLOCK_SIZE}',
         # SENSOR ALLOW-LIST
         f'SENSORS = LND08 LND09 SEN2A SEN2B': f'SENSORS = {TSI_Sensors}',
         f'SPECTRAL_ADJUST = FALSE': f'SPECTRAL_ADJUST = {TSI_SPECTRAL_ADJUST}',

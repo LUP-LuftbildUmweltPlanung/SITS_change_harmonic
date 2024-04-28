@@ -14,7 +14,7 @@ from utils.residuals_utils import calculate_residuals
 
 
 startzeit = time.time()
-def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,mosaic,tsi_lst,tss_lst,times_std,start_date,end_date,period_length,temp_folder,proc_folder, **kwargs):
+def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,temp_folder,proc_folder,tsi_lst,tss_lst, **kwargs):
     if not tsi_lst or not tss_lst:
         tsi_lst = glob.glob(f"{temp_folder}/{project_name}/tiles_tsi/X*/*.tif")
         tss_lst = glob.glob(f"{temp_folder}/{project_name}/tiles_tss/X*/*.tif")
@@ -49,7 +49,7 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
             forest_mask_extended = forest_mask[:, :, np.newaxis]
             missing_values = np.logical_and(np.isnan(output_array_full), ~forest_mask_extended)
             output_array_full[missing_values] = 5000
-            output_array_full[np.isnan(output_array_full)] = -9999
+            output_array_full[np.isnan(output_array_full)] = 9999
             write_output_raster(raster_tss, output, output_array_full, f"/residuals.tif", rasterio.open(raster_tss).count)
 
         nrt_raster_data = None
@@ -140,7 +140,7 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
 
                 # Slice the data for the current date range
                 sliced_array = slice_by_date(output_array_full, dates_nrt, date, period_length)
-                if thresholding == True:
+                if residuals == "thresholding":
                     sliced_filter = slice_by_date(filtered, dates_nrt, date, period_length)
                 # Move to the next date range
                 date = (datetime.strptime(date, '%Y-%m') + relativedelta(months=period_length)).strftime('%Y-%m')
@@ -160,7 +160,7 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
                 # counts = counts.astype(int)
 
 
-                if thresholding ==True:
+                if residuals == "thresholding":
                     sliced_filter_2d = np.any(sliced_filter, axis=2)
                     sliced_filter_2d_nan = np.logical_and(a_p10 == 9999, sliced_filter_2d)
                     #print(sum(sliced_filter_2d))

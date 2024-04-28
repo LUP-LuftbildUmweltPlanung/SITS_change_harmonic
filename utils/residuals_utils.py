@@ -166,7 +166,7 @@ def write_output_raster(nrt_raster,output, array, suffix, nbands):
         dtype='int32',
         count=nbands,
         compress='lzw',
-        nodata= -9999)
+        nodata= 9999)
 
     if nbands == 1:
         with rasterio.open(output + suffix, 'w', **kwargs) as dst:
