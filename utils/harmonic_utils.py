@@ -28,7 +28,6 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
 
         ## force mask / wald = 0, nodata sentinel = -9999
         residuals_nrt = None
-        # residuals_nrt = r"E:\++++Promotion\ChangeDetection\Anwendung\harmonic\sachsen\force_reftillend2017\X0058_Y0047_10til23_LandSen_mode3\2010-2023_001-365_HL_TSA_SEN2L_NDM_NRT.tif"   ## Near Real time product ## Residuen zwischen Extrapolated harmonic und real data
 
         raster_tss_data, dates_nrt, sens, __ = extract_data(raster_tss, with_std = False)
         raster_tsi_data, dates_tsi, sens, data_std = extract_data(raster_tsi, with_std = True)
@@ -38,6 +37,8 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
         print("finished calculating residuals\n")
 
         threshold = data_std * times_std
+
+        # get forest mask lately ... assumption that all values in z dimension are nan
         forest_mask = np.isnan(nrt_raster_data).all(axis=2)
 
         if residuals == "thresholding":
@@ -51,6 +52,7 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
             output_array_full[missing_values] = 5000
             output_array_full[np.isnan(output_array_full)] = 9999
             write_output_raster(raster_tss, output, output_array_full, f"/residuals.tif", rasterio.open(raster_tss).count)
+            continue
 
         nrt_raster_data = None
         raster_tsi_data = None
@@ -90,16 +92,19 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
             print("###" * 10)
             print(f'calculate intensity and count for whole time period (residual related)\n')
             a_p10 = np.nanpercentile(output_array_full, 10, axis=2)
-            # counts=(~np.isnan(output_array_full)).sum(axis=2)
             # Fill NaN values
             a_p10[np.isnan(a_p10)] = 9999
             a_p10 = a_p10.astype(int)
+            write_output_raster(raster_tss, output, a_p10, f"/intensity.tif", 1)
+
+            ## uncomment if you want to have information about amount of valid values
+            # counts=(~np.isnan(output_array_full)).sum(axis=2)
             # counts[np.isnan(counts)]= 9999
             # counts = counts.astype(int)
+            # write_output_raster(residuals_nrt,output, counts, f"\\count.tif",1)
             # a_p10[counts<20] = 9999
             # write_output_raster(residuals_nrt,output, a_p10, f"\\intensity_count_o20.tif",1)
-            write_output_raster(raster_tss, output, a_p10, f"/intensity.tif", 1)
-            # write_output_raster(residuals_nrt,output, counts, f"\\count.tif",1)
+
             print("###" * 10)
             print(f'finished intensity for whole time period (residual related)\n')
 
@@ -108,14 +113,10 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
             ################ ITERATE OVER TIME PERIODS ####################
             ###############################################################
 
-            # get forest mask lately ... assumption that all values in z dimension are nan
-            #forest_mask = np.isnan(nrt_raster_data).all(axis=2)
-
             # Loop over the date range and slice the data
             date = start_date
             print("###" * 10)
-            print(
-                f' starting slicing for time periods! (residual related) \n start date: {start_date} \n end date: {end_date} \n period length: {period_length} month')
+            print(f' starting slicing for time periods! (residual related) \n start date: {start_date} \n end date: {end_date} \n period length: {period_length} month')
             while date < end_date:
 
                 # Print the start and end months for the current slice
@@ -125,18 +126,11 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
                 sm_split = start_month.split(" ")
                 em_split = end_month.split(" ")
 
-                if sm_split[0] == 'December':
-                    print(f"period started with December skipped ...")
-                    date = (datetime.strptime(date, '%Y-%m') + relativedelta(months=period_length)).strftime('%Y-%m')
-                    continue
-                #if sm_split[0] == 'January':
-                    #print(f"period started with January skipped ...")
-                    #date = (datetime.strptime(date, '%Y-%m') + relativedelta(months=period_length)).strftime('%Y-%m')
-                    #continue
-                if sm_split[0] == 'February':
-                    print(f"period started with February skipped ...")
-                    date = (datetime.strptime(date, '%Y-%m') + relativedelta(months=period_length)).strftime('%Y-%m')
-                    continue
+                ## uncomment or adjust if some periods should be skipped
+                # if sm_split[0] == 'December':
+                #     print(f"period started with December skipped ...")
+                #     date = (datetime.strptime(date, '%Y-%m') + relativedelta(months=period_length)).strftime('%Y-%m')
+                #     continue
 
                 # Slice the data for the current date range
                 sliced_array = slice_by_date(output_array_full, dates_nrt, date, period_length)
@@ -151,26 +145,27 @@ def harmonic(project_name,residuals,int10p_whole,firstdate_whole,intp10_period,m
                 # do the calculations
                 print(f'calculate intensity ...')
                 a_p10 = np.nanpercentile(sliced_array, 10, axis=2)
-                # a_p10 = sliced_array
+
                 # counts=(sliced_array<threshold).sum(axis=2)
                 # Fill NaN values
                 a_p10[np.isnan(a_p10)] = 9999
                 a_p10 = a_p10.astype(int)
-                # counts[np.isnan(counts)]= 9999
-                # counts = counts.astype(int)
-
+                #counts[np.isnan(counts)]= 9999
+                #counts = counts.astype(int)
 
                 if residuals == "thresholding":
                     sliced_filter_2d = np.any(sliced_filter, axis=2)
                     sliced_filter_2d_nan = np.logical_and(a_p10 == 9999, sliced_filter_2d)
                     #print(sum(sliced_filter_2d))
-                    a_p10[sliced_filter_2d_nan] = 0
+                    a_p10[sliced_filter_2d_nan] = 9999 #Should be set to e.g. 0 if you want to seperate areas outside mask and no disturbance
 
                 missing_values = np.logical_and(a_p10 == 9999, ~forest_mask)
                 a_p10[missing_values] = 5000
                 a_p10 = a_p10.astype(np.int32)
                 write_output_raster(raster_tss, output, a_p10,
                                     f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10.tif", 1)
+
+
                 # print(f'calculate meta ...')
                 # counts_disturbance = (~np.isnan(output_array_full)).sum(axis=2)
                 # counts_nodisturbance = (~(~np.isnan(output_array_full))).sum(axis=2)
