@@ -55,7 +55,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     if not os.path.exists(f"{temp_folder}/{project_name}"):
         os.makedirs(f"{temp_folder}/{project_name}")
 
-    subprocess.run(['sudo', 'chmod', '-R', '777', f"{Path(scripts_skel).parent}"])
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
 
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/datacube-definition.prj")
 
@@ -66,6 +66,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         subprocess.run(['xterm','-hold','-e', cmd])
     else:
         subprocess.run(['xterm', '-e', cmd])
+
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
 
     ### mask
@@ -151,10 +152,12 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     cmd = f"sudo docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
           f"force-higher-level {temp_folder}/{project_name}/dswi_harmonic_tss.prm"
 
-    #if hold == True:
-        #subprocess.run(['xterm', '-hold', '-e', cmd])
-    #else:
-        #subprocess.run(['xterm', '-e', cmd])
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
+    if hold == True:
+        subprocess.run(['xterm', '-hold', '-e', cmd])
+    else:
+        subprocess.run(['xterm', '-e', cmd])
+
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
     #analysis_tsi
     ###force param
@@ -237,11 +240,12 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
 
     cmd = f"sudo docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
           f"force-higher-level {temp_folder}/{project_name}/dsw_harmonic_tsi.prm"
-
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
     if hold == True:
         subprocess.run(['xterm', '-hold', '-e', cmd])
     else:
         subprocess.run(['xterm', '-e', cmd])
+
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
 
     endzeit = time.time()

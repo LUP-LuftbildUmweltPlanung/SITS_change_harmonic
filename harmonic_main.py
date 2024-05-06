@@ -5,9 +5,9 @@ Created on Wed Feb 15 10:55:21 2023
 @author: LUP
 
 """
-from sits_change_harmonic.force.force_harmonic_utils import *
-from sits_change_harmonic.utils.harmonic_utils import *
-from sits_change_harmonic.config_path import path_params
+from SITS_change_harmonic.force.force_harmonic_utils import *
+from SITS_change_harmonic.utils.harmonic_utils import *
+from SITS_change_harmonic.config_path import path_params
 
 #### Default Index DSWI -> to change adjust .force/skel/force_cube_sceleton_dswi*.py
 #### BNIR USED FOR DSWI, if harmonized with Landsat -> NIR must been changed in .force/skel/force_cube_sceleton_dswi*.py
@@ -16,15 +16,15 @@ params = {
     #########Basics##########
     #########################
     "project_name": "Th_2024", #Project Name that will be the name of the output folder in temp & result subfolder
-    "aoi": "/uge_mount/force_sits/process/data/Thueringen/th_25833.shp", #aoi as shapefile
+    "aoi": "/nne_mount/sits_framework/process/data/workshop_aoi/potsdam_2023_utm33p.shp", #aoi as shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
-    "TSS_DATE_RANGE": "2018-01-01 2024-04-25",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
+    "TSS_DATE_RANGE": "2018-01-01 2020-04-25",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
-    "TSI_Sensors": "LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B",#"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # Choose between Input Sensors
-    "TSI_DATE_RANGE": "2010-01-01 2018-01-01",# Reference Period for Interpolation Model
+    "TSI_Sensors": "SEN2A SEN2B",#"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # Choose between Input Sensors
+    "TSI_DATE_RANGE": "2016-01-01 2018-01-01",# Reference Period for Interpolation Model
     "Trend": True, #Do you want to use Trend for Predicting with Harmonic Model?
     ###########################
     ##HARMONIC Postprocessing##
@@ -38,7 +38,7 @@ params = {
     "times_std": -1.5, # Threshold for ChangeDetection
     # Define start and end dates and period length
     "start_date": "2018-01", # Starting Date for Period Calculation
-    "end_date": "2024-12", # End Date for Period Calculation
+    "end_date": "2019-12", # End Date for Period Calculation
     "period_length": 12, # # Time Range for Period Calculation
     }
 
@@ -49,13 +49,14 @@ advanced_params = {
     "tsi_lst": None, #tss & tsi will be automatically used from project_folder structure
     "tss_lst": None, #tss & tsi will be automatically used from project_folder structure
 
+    # To disable
     "TSS_ABOVE_NOISE": 3, #noise filtering in spectral values above 3 x std; take care for not filtering real changes
     "TSS_BELOW_NOISE": 1, #get back values from qai masking below single std
     "TSS_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
     "TSI_ABOVE_NOISE": 3, #noise filtering in spectral values above 3 x std
     "TSI_BELOW_NOISE": 1, #get back values from qai masking below single std
-    "TSI_SPECTRAL_ADJUST": "TRUE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
+    "TSI_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
     "hold": False,  # if True, cmd must be closed manually
 
@@ -72,7 +73,7 @@ advanced_params = {
 
 
 if __name__ == '__main__':
-    force_harmonic(**params,**path_params,**advanced_params)
+    #force_harmonic(**params,**path_params,**advanced_params)
     harmonic(**params,**path_params,**advanced_params)
 
 

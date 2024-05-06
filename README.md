@@ -11,7 +11,7 @@ Results can be plots for points:
 
 <img src="img/change.png" width="300" height="200" /> <img src="img/nochange.png" width="300" height="200" />
 
-And results can be grid based where every pixel has:
+And results can [README.md](..%2FSITS_classification%2FREADME.md)be grid based where every pixel has:
 - the first date where the disturbance occurred
 - 90th percentile for disturbance residuals over the entire time period
 - 90th percentile for disturbance residuals within specified time ranges
@@ -24,12 +24,16 @@ And results can be grid based where every pixel has:
 * GDAL, ...
 * sudo apt-get install xterm
 * Cuda-capable GPU ([overview here](https://developer.nvidia.com/cuda-gpus))
+* force docker Version 3.7.11
 
 
 ### Installation
 
-* clone the Stable UNet repository
-* `conda create --name harmonic python==xxx`
+* conda create --name SITSchange python==3.9
+* conda activate SITSchange
+* cd /path/to/repository
+* pip install -r requirements.txt
+* sudo apt-get install xterm
 
 ### Executing program
 
