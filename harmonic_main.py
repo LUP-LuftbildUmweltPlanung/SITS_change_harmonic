@@ -15,8 +15,8 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "Kai_2024",
-    "aoi": "/uge_mount/FORCE/new_struc/data/Thueringen_Kai/kai_3035.shp",
+    "project_name": "xhain_20240730",
+    "aoi": "/uge_mount/FORCE/new_struc/data/xhain/xhain_2023.shp",
 
     #TimeSeriesStack (TSS)
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B,
@@ -57,7 +57,7 @@ advanced_params = {
     "TSI_BELOW_NOISE": 1, #get back values from qai masking below single std
     "TSI_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
-    "hold": False,  # if True, cmd must be closed manually
+    "hold": False,  # if True, cmd must be closed manually ## recommended for debugging FORCE
 
     #Streaming Mechnism
     "NTHREAD_READ": 7,  # 4,
