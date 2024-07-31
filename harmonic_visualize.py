@@ -11,7 +11,7 @@ import rasterio
 import numpy as np
 import datetime
 import os
-from sits_change_harmonic.utils.residuals_utils import extract_data, plot_timeseries
+from SITS_change_harmonic.utils.residuals_utils import extract_data, plot_timeseries
 
 raster_tsi = "/.../.../tiles_tsi/X0068_Y0038/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"
 raster_tss = "/.../.../tiles_tss/X0068_Y0038/2015-2024_001-365_HL_UDF_SEN2L_PYP.tif"

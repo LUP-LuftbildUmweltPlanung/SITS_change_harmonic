@@ -2,7 +2,7 @@
 """
 Created on Wed Feb 15 10:51:48 2023
 
-@author: Admin
+@author: benjaminstoeckigt
 """
 import rasterio
 import numpy as np
@@ -47,7 +47,7 @@ def extract_data(raster_file,with_std):
         
         return nrt_raster_data.transpose(1,2,0), dates_nrt, sens, std_raster_data
 
-def calculate_residuals(raster_tss_data,raster_tsi_data,dates_nrt,dates_tsi):
+def calculate_residuals(raster_tss_data,raster_tsi_data,dates_nrt,dates_tsi,relativ_prc_change):
     # Convert date strings to datetime objects
     dates_tsi_dt = [datetime.datetime.strptime(d, '%Y-%m-%d') for d in dates_tsi]
     # Convert datetime objects to timestamps
@@ -62,19 +62,20 @@ def calculate_residuals(raster_tss_data,raster_tsi_data,dates_nrt,dates_tsi):
     # Use the interpolation function to interpolate raster_tsi_data to the new time axis
     # Define chunk size
     chunk_size = 50
-    
-    # Interpolate raster_tsi_data in chunks
-    interpolated_tsi_chunks = []
+
     for i in range(0, len(timestamps_tss), chunk_size):
-        tss_chunk = timestamps_tss[i:i+chunk_size]
+        tss_chunk = timestamps_tss[i:i + chunk_size]
         interpolated_tsi_chunk = interp_func(tss_chunk)
-        interpolated_tsi_chunks.append(interpolated_tsi_chunk)
-    
-    # Concatenate interpolated chunks
-    interpolated_tsi_data = np.concatenate(interpolated_tsi_chunks, axis=2)
-    
-    # Calculate the difference between the interpolated raster_tsi_data and raster_tss_data
-    raster_tss_data -= interpolated_tsi_data
+
+        if relativ_prc_change:
+            interpolated_tsi_chunk[interpolated_tsi_chunk < 0] = np.nan
+            raster_tss_data[:, :, i:i + chunk_size][raster_tss_data[:, :, i:i + chunk_size] < 0] = np.nan
+            residual = raster_tss_data[:, :, i:i + chunk_size] - interpolated_tsi_chunk
+            np.divide(residual, interpolated_tsi_chunk, out=residual, where=interpolated_tsi_chunk != 0)
+            raster_tss_data[:, :, i:i + chunk_size] = residual * 100
+        else:
+            raster_tss_data[:, :, i:i + chunk_size] -= interpolated_tsi_chunk
+
     return raster_tss_data
 
 def get_output_array_full(nrt_raster_data, threshold):
@@ -166,7 +167,7 @@ def write_output_raster(nrt_raster,output, array, suffix, nbands):
         dtype='int32',
         count=nbands,
         compress='lzw',
-        nodata= -9999)
+        nodata= 9999)
 
     if nbands == 1:
         with rasterio.open(output + suffix, 'w', **kwargs) as dst:

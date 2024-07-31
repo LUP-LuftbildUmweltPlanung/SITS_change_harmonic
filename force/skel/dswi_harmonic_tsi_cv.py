@@ -144,4 +144,4 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     #outarray[:, :, 0, 0]=dswi[:, 0]
     #outarray[:] = ytest
     outarray[:-1]= ytest*100
-    outarray[-1:] = np.nanstd(ytrain)*100
+    outarray[-1:] = np.nanstd(ytrain) / np.nanmean(ytrain) *100

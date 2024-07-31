@@ -3,6 +3,7 @@ import subprocess
 import time
 import shutil
 import geopandas as gpd
+from pathlib import Path
 
 def replace_parameters(filename, replacements):
     with open(filename, 'r') as f:
@@ -43,34 +44,42 @@ def check_and_reproject_shapefile(shapefile_path, target_epsg=3035):
     else:
         print("Shapefile is already in EPSG: 3035")
         return shapefile_path
-def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Trend,force_dir,local_dir,force_skel,scripts_skel,temp_folder,
-    mask_folder,TSS_SPECTRAL_ADJUST,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_SPECTRAL_ADJUST,
-    TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,NTHREAD_READ,NTHREAD_COMPUTE,NTHREAD_WRITE,BLOCK_SIZE,**kwargs):
+def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Model,relativ_prc_change,process_folder,force_dir,TSS_SPECTRAL_ADJUST,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_SPECTRAL_ADJUST,TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,TSS_NTHREAD_READ,TSS_NTHREAD_COMPUTE,
+                   TSS_NTHREAD_WRITE,TSS_BLOCK_SIZE,TSI_NTHREAD_READ,TSI_NTHREAD_COMPUTE,TSI_NTHREAD_WRITE,TSI_BLOCK_SIZE,**kwargs):
+
+    force_dir = f"{force_dir}:{force_dir}"
+    local_dir = f"{os.sep + process_folder.split(os.sep)[1]}:{os.sep + process_folder.split(os.sep)[1]}"
+    scripts_skel = f"{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}/force/skel"
+    force_skel = f"{scripts_skel}/force_cube_sceleton"
+    temp_folder = process_folder + "/temp"
+    mask_folder = process_folder + "/temp/_mask"
 
     startzeit = time.time()
 
     aoi = check_and_reproject_shapefile(aoi)
     ### get force extend
-    if not os.path.exists(f"{temp_folder}/{project_name}"):
-        os.makedirs(f"{temp_folder}/{project_name}")
+    os.makedirs(f"{temp_folder}/{project_name}", exist_ok=True)
+
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
+
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/datacube-definition.prj")
 
-    cmd = f"docker run -v {local_dir} -v {force_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -v {local_dir} -v {force_dir} davidfrantz/force " \
            f"force-tile-extent {aoi} {force_skel} {temp_folder}/{project_name}/tile_extent.txt"
 
     if hold == True:
         subprocess.run(['xterm','-hold','-e', cmd])
     else:
         subprocess.run(['xterm', '-e', cmd])
+
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
 
     ### mask
 
-    if not os.path.exists(f"{mask_folder}/{project_name}"):
-        os.makedirs(f"{mask_folder}/{project_name}")
+    os.makedirs(f"{mask_folder}/{project_name}", exist_ok=True)
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{mask_folder}/{project_name}/datacube-definition.prj")
 
-    cmd = f"docker run -v {local_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -v {local_dir} davidfrantz/force " \
           f"force-cube -o {mask_folder}/{project_name} " \
           f"{aoi}"
 
@@ -81,7 +90,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
 
 
     ###mask mosaic
-    cmd = f"docker run -v {local_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -v {local_dir} davidfrantz/force " \
           f"force-mosaic {mask_folder}/{project_name}"
 
     if hold == True:
@@ -95,13 +104,9 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
 
     #analysis_tss
     ###force param
-
-    if not os.path.exists(f"{temp_folder}/{project_name}"):
-        os.makedirs(f"{temp_folder}/{project_name}")
-    if not os.path.exists(f"{temp_folder}/{project_name}/provenance"):
-        os.makedirs(f"{temp_folder}/{project_name}/provenance")
-    if not os.path.exists(f"{temp_folder}/{project_name}/tiles_tss"):
-        os.makedirs(f"{temp_folder}/{project_name}/tiles_tss")
+    os.makedirs(f"{temp_folder}/{project_name}", exist_ok=True)
+    os.makedirs(f"{temp_folder}/{project_name}/provenance", exist_ok=True)
+    os.makedirs(f"{temp_folder}/{project_name}/tiles_tss", exist_ok=True)
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/datacube-definition.prj")
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/tiles_tss/datacube-definition.prj")
     shutil.copy(f"{scripts_skel}/UDF_NoCom.prm", f"{temp_folder}/{project_name}/dswi_harmonic_tss.prm")
@@ -118,13 +123,13 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         f'DIR_MASK = NULL':f'DIR_MASK = {mask_folder}/{project_name}',
         f'BASE_MASK = NULL':f'BASE_MASK = {os.path.basename(aoi).replace(".shp",".tif")}',
         # PARALLEL PROCESSING
-        f'NTHREAD_READ = 8':f'NTHREAD_READ = {NTHREAD_READ}',
-        f'NTHREAD_COMPUTE = 22':f'NTHREAD_COMPUTE = {NTHREAD_COMPUTE}',
-        f'NTHREAD_WRITE = 4':f'NTHREAD_WRITE = {NTHREAD_WRITE}',
+        f'NTHREAD_READ = 8':f'NTHREAD_READ = {TSS_NTHREAD_READ}',
+        f'NTHREAD_COMPUTE = 22':f'NTHREAD_COMPUTE = {TSS_NTHREAD_COMPUTE}',
+        f'NTHREAD_WRITE = 4':f'NTHREAD_WRITE = {TSS_NTHREAD_WRITE}',
         # PROCESSING EXTENT AND RESOLUTION
         f'X_TILE_RANGE = 0 0':f'X_TILE_RANGE = {X_TILE_RANGE}',
         f'Y_TILE_RANGE = 0 0':f'Y_TILE_RANGE = {Y_TILE_RANGE}',
-        f'BLOCK_SIZE = 0':f'BLOCK_SIZE = {BLOCK_SIZE}',
+        f'BLOCK_SIZE = 0':f'BLOCK_SIZE = {TSS_BLOCK_SIZE}',
         # SENSOR ALLOW-LIST
         f'SENSORS = LND08 LND09 SEN2A SEN2B':f'SENSORS = {TSS_Sensors}',
         f'SPECTRAL_ADJUST = FALSE':f'SPECTRAL_ADJUST = {TSS_SPECTRAL_ADJUST}',
@@ -144,40 +149,56 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     # Replace parameters in the file
     replace_parameters(f"{temp_folder}/{project_name}/dswi_harmonic_tss.prm", replacements)
 
-    cmd = f"docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
           f"force-higher-level {temp_folder}/{project_name}/dswi_harmonic_tss.prm"
 
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
     if hold == True:
         subprocess.run(['xterm', '-hold', '-e', cmd])
     else:
         subprocess.run(['xterm', '-e', cmd])
+
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
     #analysis_tsi
     ###force param
 
-    if not os.path.exists(f"{temp_folder}/{project_name}"):
-        os.makedirs(f"{temp_folder}/{project_name}")
-    if not os.path.exists(f"{temp_folder}/{project_name}/provenance"):
-        os.makedirs(f"{temp_folder}/{project_name}/provenance")
-    if not os.path.exists(f"{temp_folder}/{project_name}/tiles_tsi"):
-        os.makedirs(f"{temp_folder}/{project_name}/tiles_tsi")
+    os.makedirs(f"{temp_folder}/{project_name}", exist_ok=True)
+    os.makedirs(f"{temp_folder}/{project_name}/provenance", exist_ok=True)
+    os.makedirs(f"{temp_folder}/{project_name}/tiles_tsi", exist_ok=True)
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/datacube-definition.prj")
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/tiles_tsi/datacube-definition.prj")
     shutil.copy(f"{scripts_skel}/UDF_NoCom.prm", f"{temp_folder}/{project_name}/dsw_harmonic_tsi.prm")
-    shutil.copy(f"{scripts_skel}/dswi_harmonic_tsi.py",f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py")
+    if relativ_prc_change == True:
+        shutil.copy(f"{scripts_skel}/dswi_harmonic_tsi_cv.py", f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py")
+    else:
+        shutil.copy(f"{scripts_skel}/dswi_harmonic_tsi.py",f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py")
 
-    if Trend == False:
-        # Read the contents of the file
-        with open(f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py", 'r') as file:
-            lines = file.readlines()
-        # Modify the specific line
-        with open(f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py", 'w') as file:
-            for line in lines:
-                if line.strip() == "objective = objective_full":
-                    # Replace the line
+
+    # Read the contents of the file
+    with open(f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py", 'r') as file:
+        lines = file.readlines()
+    # Modify the specific line
+    with open(f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py", 'w') as file:
+        for line in lines:
+            if line.strip() == "objective = objective_full":
+                # Replace the line
+                if Model == "simple_trend":
+                    file.write("objective = objective_simple\n")
+                elif Model == "simple_notrend":
+                    file.write("objective = objective_simple_notrend\n")
+                elif Model == "advanced_trend":
+                    file.write("objective = objective_advanced\n")
+                elif Model == "advanced_notrend":
+                    file.write("objective = objective_advanced_notrend\n")
+                elif Model == "full_trend":
+                    file.write("objective = objective_full\n")
+                elif Model == "full_notrend":
                     file.write("objective = objective_full_notrend\n")
                 else:
-                    file.write(line)
+                    raise ValueError("Model name not existing! Choose viable model complexity.")
+            else:
+                file.write(line)
+
 
     #replace in tsi udf python
     start_date_pred = TSS_DATE_RANGE.split(" ")[0]
@@ -206,13 +227,13 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         f'DIR_MASK = NULL': f'DIR_MASK = {mask_folder}/{project_name}',
         f'BASE_MASK = NULL': f'BASE_MASK = {os.path.basename(aoi).replace(".shp", ".tif")}',
         # PARALLEL PROCESSING
-        f'NTHREAD_READ = 8': f'NTHREAD_READ = {NTHREAD_READ}',
-        f'NTHREAD_COMPUTE = 22': f'NTHREAD_COMPUTE = {NTHREAD_COMPUTE}',
-        f'NTHREAD_WRITE = 4': f'NTHREAD_WRITE = {NTHREAD_WRITE}',
+        f'NTHREAD_READ = 8': f'NTHREAD_READ = {TSI_NTHREAD_READ}',
+        f'NTHREAD_COMPUTE = 22': f'NTHREAD_COMPUTE = {TSI_NTHREAD_COMPUTE}',
+        f'NTHREAD_WRITE = 4': f'NTHREAD_WRITE = {TSI_NTHREAD_WRITE}',
         # PROCESSING EXTENT AND RESOLUTION
         f'X_TILE_RANGE = 0 0': f'X_TILE_RANGE = {TSI_X_TILE_RANGE}',
         f'Y_TILE_RANGE = 0 0': f'Y_TILE_RANGE = {TSI_Y_TILE_RANGE}',
-        f'BLOCK_SIZE = 0': f'BLOCK_SIZE = {BLOCK_SIZE}',
+        f'BLOCK_SIZE = 0': f'BLOCK_SIZE = {TSI_BLOCK_SIZE}',
         # SENSOR ALLOW-LIST
         f'SENSORS = LND08 LND09 SEN2A SEN2B': f'SENSORS = {TSI_Sensors}',
         f'SPECTRAL_ADJUST = FALSE': f'SPECTRAL_ADJUST = {TSI_SPECTRAL_ADJUST}',
@@ -231,13 +252,14 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     # Replace parameters in the file
     replace_parameters(f"{temp_folder}/{project_name}/dsw_harmonic_tsi.prm", replacements)
 
-    cmd = f"docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
+    cmd = f"sudo docker run -it -v {local_dir} -v {force_dir} davidfrantz/force " \
           f"force-higher-level {temp_folder}/{project_name}/dsw_harmonic_tsi.prm"
-
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
     if hold == True:
         subprocess.run(['xterm', '-hold', '-e', cmd])
     else:
         subprocess.run(['xterm', '-e', cmd])
+
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
 
     endzeit = time.time()
