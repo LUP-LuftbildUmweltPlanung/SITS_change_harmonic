@@ -25,9 +25,9 @@ code is build upon FORCE-Datacube and -Framework (Docker, FORCE-Version 3.7.11)
 
 This repository contains the code necessary to run Changedetection for Satellite Image Time Series with [Harmonic Model](https://www.sciencedirect.com/science/article/abs/pii/S0034425715000590) based on the [FORCE Datacube](https://force-eo.readthedocs.io/en/latest/index.html). 
 It's based on the following folder structure:
-
-<img src="img/folder_structure.png" width="400" height="320" />
-
+<div align="center">
+<img src="img/folder_structure.png" width="400" height="320">
+</div>
 Harmonic Model based on reference period will be used to predict expected spectral values. Those values will be compared with real spectral values regarding an uncertainty (standard deviation) and disturbance state can change with 3 consecutive times below or above threshold. 
 
 Results can be plots for points:
@@ -45,9 +45,9 @@ And results can be grid based where every pixel has:
 To execute the script simply set parameters in harmonic_main /harmonic_visualize and execute the file
 
 There are entry points and use cases which are briefly shown in the following flow chart:
-
-<img src="img/flowchart.png" width="460" height="320" />
-
+<div align="center">
+<img src="img/flowchart.png" width="460" height="320">
+</div>
 ## Help/Known Issues
 
 * None yet
