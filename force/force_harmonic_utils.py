@@ -44,7 +44,7 @@ def check_and_reproject_shapefile(shapefile_path, target_epsg=3035):
     else:
         print("Shapefile is already in EPSG: 3035")
         return shapefile_path
-def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Model,relativ_prc_change,process_folder,force_dir,TSS_SPECTRAL_ADJUST,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_SPECTRAL_ADJUST,TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,TSS_NTHREAD_READ,TSS_NTHREAD_COMPUTE,
+def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Model,prc_change,process_folder,force_dir,TSS_SPECTRAL_ADJUST,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_SPECTRAL_ADJUST,TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,TSS_NTHREAD_READ,TSS_NTHREAD_COMPUTE,
                    TSS_NTHREAD_WRITE,TSS_BLOCK_SIZE,TSI_NTHREAD_READ,TSI_NTHREAD_COMPUTE,TSI_NTHREAD_WRITE,TSI_BLOCK_SIZE,**kwargs):
 
     force_dir = f"{force_dir}:{force_dir}"
@@ -93,10 +93,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     cmd = f"sudo docker run -v {local_dir} davidfrantz/force " \
           f"force-mosaic {mask_folder}/{project_name}"
 
-    if hold == True:
-        subprocess.run(['xterm','-hold','-e', cmd])
-    else:
-        subprocess.run(['xterm', '-e', cmd])
+    # if hold == True:
+    #     subprocess.run(['xterm','-hold','-e', cmd])
+    # else:
+    #     subprocess.run(['xterm', '-e', cmd])
 
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{mask_folder}/{project_name}"])
 
@@ -153,10 +153,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
           f"force-higher-level {temp_folder}/{project_name}/dswi_harmonic_tss.prm"
 
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
-    if hold == True:
-        subprocess.run(['xterm', '-hold', '-e', cmd])
-    else:
-        subprocess.run(['xterm', '-e', cmd])
+    # if hold == True:
+    #     subprocess.run(['xterm', '-hold', '-e', cmd])
+    # else:
+    #     subprocess.run(['xterm', '-e', cmd])
 
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
     #analysis_tsi
@@ -168,7 +168,7 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/datacube-definition.prj")
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/tiles_tsi/datacube-definition.prj")
     shutil.copy(f"{scripts_skel}/UDF_NoCom.prm", f"{temp_folder}/{project_name}/dsw_harmonic_tsi.prm")
-    if relativ_prc_change == True:
+    if prc_change == True:
         shutil.copy(f"{scripts_skel}/dswi_harmonic_tsi_cv.py", f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py")
     else:
         shutil.copy(f"{scripts_skel}/dswi_harmonic_tsi.py",f"{temp_folder}/{project_name}/dswi_harmonic_tsi.py")

@@ -16,7 +16,7 @@ from SITS_change_harmonic.utils.residuals_utils import extract_data, plot_timese
 raster_tsi = "/.../.../tiles_tsi/X0068_Y0038/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"
 raster_tss = "/.../.../tiles_tss/X0068_Y0038/2015-2024_001-365_HL_UDF_SEN2L_PYP.tif"
 points = gpd.read_file("/.../.../aoi_points.shp")
-save_fig = "/.../.../output_figs"
+save_fig = "/.../.../output_figures"
 threshold = "std" # number[0,1,2,...] or "std"
 id_column = "ProbeBNr"
 title = "Sentinel, Ref: Sentinel 2016-2018, Point ID: "

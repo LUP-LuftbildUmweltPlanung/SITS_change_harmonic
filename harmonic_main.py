@@ -14,8 +14,8 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "xhain_20240731_prct_advancedharmonic",
-    "aoi": "/uge_mount/FORCE/new_struc/process/data/xhain/xhain_2023.shp",
+    "project_name": "project_name",
+    "aoi": "/path/to/aoi.shp",
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
@@ -46,7 +46,7 @@ params = {
 
 advanced_params = {
     #BASIC
-    "process_folder": "/uge_mount/FORCE/new_struc/process/",
+    "process_folder": "/path/to/process_folder/",
     "force_dir": "/force",
     #"tsi_lst" : glob(".../tiles_tsi/X*/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"),
     #"tss_lst" : glob(".../tiles_tss/X*/2018-2023_001-365_HL_UDF_SEN2L_PYP.tif"),
@@ -58,7 +58,7 @@ advanced_params = {
     "TSS_BELOW_NOISE": 1, #get back values from qai masking below single std
     "TSS_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
-    "Model": "advanced_trend",  # Choose the specific complexity of the harmonic model
+    "Model": "full_notrend",  # Choose the specific complexity of the harmonic model
     # "simple_trend" -> clear observations 12 - 18 with trend
     # "simple_notrend" -> clear observations 12 - 18 without trend
     # "advanced_trend" -> clear observations 18 - 24 with trend
@@ -85,7 +85,7 @@ advanced_params = {
 
 
 if __name__ == '__main__':
-    #force_harmonic(**params,**advanced_params)
+    force_harmonic(**params,**advanced_params)
     harmonic(**params,**advanced_params)
 
 
