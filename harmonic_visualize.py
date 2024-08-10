@@ -13,14 +13,14 @@ import datetime
 import os
 from SITS_change_harmonic.utils.residuals_utils import extract_data, plot_timeseries
 
-raster_tsi = "/.../.../tiles_tsi/X0068_Y0038/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"
-raster_tss = "/.../.../tiles_tss/X0068_Y0038/2015-2024_001-365_HL_UDF_SEN2L_PYP.tif"
-points = gpd.read_file("/.../.../aoi_points.shp")
-save_fig = "/.../.../output_figures"
+raster_tsi = "/uge_mount/FORCE/new_struc/process/temp/xhain_20240731_prct_advancedharmonic_thresholdM1/tiles_tsi/X0069_Y0043/2016-2018_001-365_HL_UDF_SEN2L_PYP.tif"
+raster_tss = "/uge_mount/FORCE/new_struc/process/temp/xhain_20240731_prct_advancedharmonic_thresholdM1/tiles_tss/X0069_Y0043/2018-2024_001-365_HL_UDF_SEN2L_PYP.tif"
+points = gpd.read_file("/uge_mount/FORCE/new_struc/process/data/xhain/test_points.shp")
+save_fig = "/uge_mount/FORCE/new_struc/process/temp/xhain_20240731_prct_advancedharmonic_thresholdM1/output_figures"
 threshold = "std" # number[0,1,2,...] or "std"
-id_column = "ProbeBNr"
+id_column = "Id"
 title = "Sentinel, Ref: Sentinel 2016-2018, Point ID: "
-ylab = "Vitalitätsindex CCCI"
+ylab = "Vitalitätsindex DSWI"
 
 
 

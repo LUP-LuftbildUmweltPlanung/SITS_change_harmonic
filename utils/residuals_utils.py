@@ -213,7 +213,7 @@ def plot_timeseries(tsi_time_series, tss_time_series, threshold, points, with_st
     plt.figure(figsize=(10, 5))
     # Plot the TSI and TSS time series data
     start_date = datetime.datetime(2018, 1, 1).date()
-    end_date = datetime.datetime(2023, 12, 31).date()
+    end_date = datetime.datetime(2024, 12, 31).date()
 
     tsi_time_series = [ts for ts in tsi_time_series if start_date <= ts[0] <= end_date]
     tss_time_series = [ts for ts in tss_time_series if start_date <= ts[0] <= end_date]

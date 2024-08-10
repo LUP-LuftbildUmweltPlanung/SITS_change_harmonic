@@ -153,10 +153,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
           f"force-higher-level {temp_folder}/{project_name}/dswi_harmonic_tss.prm"
 
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
-    # if hold == True:
-    #     subprocess.run(['xterm', '-hold', '-e', cmd])
-    # else:
-    #     subprocess.run(['xterm', '-e', cmd])
+    if hold == True:
+        subprocess.run(['xterm', '-hold', '-e', cmd])
+    else:
+        subprocess.run(['xterm', '-e', cmd])
 
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
     #analysis_tsi

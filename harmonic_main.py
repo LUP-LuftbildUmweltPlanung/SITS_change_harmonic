@@ -14,8 +14,8 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "project_name",
-    "aoi": "/path/to/aoi.shp",
+    "project_name": "xhain_20240731_prct_advancedharmonic_thresholdM1", #Project Name that will be the name of output folder in temp & result subfolder
+    "aoi": "/uge_mount/FORCE/new_struc/process/data/xhain/xhain_2023.shp", #Define Area of Interest as Shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
@@ -37,7 +37,7 @@ params = {
     "intp10_period": True, # Calculate the 10th Perzentil for periods specified below
     "mosaic": True, # Mosaic the final results?
 
-    "times_std": -1.5, # Threshold for ChangeDetection (std * -x | cv * -x)
+    "times_std": -1, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
     "start_date": "2018-01", # Starting Date for Period Calculation
     "end_date": "2024-12", # End Date for Period Calculation
@@ -46,8 +46,8 @@ params = {
 
 advanced_params = {
     #BASIC
-    "process_folder": "/path/to/process_folder/",
-    "force_dir": "/force",
+    "process_folder": "/uge_mount/FORCE/new_struc/process/", # Folder where Data and Results will be processed (will be created if not existing)
+    "force_dir": "/force", # mount directory for FORCE-Datacube - should look like /force_mount/FORCE/C1/L2/..
     #"tsi_lst" : glob(".../tiles_tsi/X*/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"),
     #"tss_lst" : glob(".../tiles_tss/X*/2018-2023_001-365_HL_UDF_SEN2L_PYP.tif"),
     "tsi_lst": None, #tss & tsi will be automatically used from project_folder structure
