@@ -56,10 +56,11 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
 
     startzeit = time.time()
 
+    basename = os.path.basename(aoi)
     aoi = check_and_reproject_shapefile(aoi)
     ### get force extend
+    #os.makedirs(f"{temp_folder}/{project_name}/{basename}", exist_ok=True)
     os.makedirs(f"{temp_folder}/{project_name}", exist_ok=True)
-
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}"])
 
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{temp_folder}/{project_name}/datacube-definition.prj")
@@ -75,13 +76,17 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{temp_folder}/{project_name}"])
 
     ### mask
-
+    basename = os.path.basename(aoi)
     os.makedirs(f"{mask_folder}/{project_name}", exist_ok=True)
+
+    subprocess.run(['sudo', 'chmod', '-R', '777', f"{mask_folder}"])
+
     shutil.copy(f"{force_skel}/datacube-definition.prj",f"{mask_folder}/{project_name}/datacube-definition.prj")
 
     cmd = f"sudo docker run -v {local_dir} davidfrantz/force " \
           f"force-cube -o {mask_folder}/{project_name} " \
           f"{aoi}"
+
 
     if hold == True:
         subprocess.run(['xterm','-hold','-e', cmd])
