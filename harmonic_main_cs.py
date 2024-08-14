@@ -14,16 +14,19 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "xhain_raw_20points_NBR_fullNoTrend_20240730_test", #Project Name that will be the name of output folder in temp & result subfolder
+    "project_name": "xhain_raw_20points_NBR_fullNoTrend_20240730", #Project Name that will be the name of output folder in temp & result subfolder
     "aoi": "/rvt_mount/FORCE/new_structure/process/data/aoi/initial_20points.shp", #Define Area of Interest as Shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
     "TSS_DATE_RANGE": "2018-01-01 2024-07-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
+    #"TSS_DATE_RANGE": "2021-01-01 2022-01-01",
+    # TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
     "TSI_Sensors": "SEN2A SEN2B",#"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # Choose between Input Sensors
     "TSI_DATE_RANGE": "2016-01-01 2018-01-01",# Reference Period for Interpolation Model
+    #"TSI_DATE_RANGE": "2020-01-01 2021-01-01",  # Reference Period for Interpolation Model
 
     ###########################
     ##HARMONIC Postprocessing##
@@ -31,7 +34,7 @@ params = {
     "prc_change": True, # way of analyse change in spectral value related to harmonic model prediction
     # False --> residual change [threshold --> std of harmonic reference period]
     # True --> relative change in percent [threshold --> coefficient of variation - (std / mean ) * 100]
-    "deviation": "thresholding", # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes
+    "deviation": "raw", # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes
     "int10p_whole": False, # Calculate the 10th Perzentil (negative Devivations for negative Change in Spectral Value)
     "firstdate_whole": False, # Calculate the first Date the Change was detected
     "intp10_period": True, # Calculate the 10th Perzentil for periods specified below
