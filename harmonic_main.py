@@ -14,8 +14,8 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "xhain_20240731_prct_advancedharmonic_thresholdM1", #Project Name that will be the name of output folder in temp & result subfolder
-    "aoi": "/uge_mount/FORCE/new_struc/process/data/xhain/xhain_2023.shp", #Define Area of Interest as Shapefile
+    "project_name": "xhain_raw_20points_NBR_fullNoTrend_20240730_test", #Project Name that will be the name of output folder in temp & result subfolder
+    "aoi": "/rvt_mount/FORCE/new_structure/process/data/aoi/initial_20points.shp", #Define Area of Interest as Shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
@@ -46,7 +46,7 @@ params = {
 
 advanced_params = {
     #BASIC
-    "process_folder": "/uge_mount/FORCE/new_struc/process/", # Folder where Data and Results will be processed (will be created if not existing)
+    "process_folder": "/rvt_mount/FORCE/new_structure/process", # Folder where Data and Results will be processed (will be created if not existing)
     "force_dir": "/force", # mount directory for FORCE-Datacube - should look like /force_mount/FORCE/C1/L2/..
     #"tsi_lst" : glob(".../tiles_tsi/X*/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"),
     #"tss_lst" : glob(".../tiles_tss/X*/2018-2023_001-365_HL_UDF_SEN2L_PYP.tif"),
@@ -70,7 +70,7 @@ advanced_params = {
     "TSI_BELOW_NOISE": 1, #get back values from qai masking below single std
     "TSI_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
-    "hold": False,  # if True, cmd must be closed manually ## recommended for debugging FORCE
+    "hold": True,  # if True, cmd must be closed manually ## recommended for debugging FORCE
 
     #Streaming Mechnism
     "TSS_NTHREAD_READ": 7,  # 4,
