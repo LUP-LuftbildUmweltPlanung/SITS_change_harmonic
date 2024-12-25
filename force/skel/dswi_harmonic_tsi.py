@@ -80,12 +80,12 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     #print(inarray[valid])
     # band indices
     green = np.argwhere(bandnames == b'GREEN')[0][0]
-    blue = np.argwhere(bandnames == b'BLUE')[0][0]
+    #blue = np.argwhere(bandnames == b'BLUE')[0][0]
     red = np.argwhere(bandnames == b'RED')[0][0]
     #re1 = np.argwhere(bandnames == b'REDEDGE1')[0][0]
     #re2 = np.argwhere(bandnames == b'REDEDGE2')[0][0]
-    nir = np.argwhere(bandnames == b'NIR')[0][0]
-    #bnir = np.argwhere(bandnames == b'BROADNIR')[0][0]
+    #nir = np.argwhere(bandnames == b'NIR')[0][0]
+    bnir = np.argwhere(bandnames == b'BROADNIR')[0][0]
     swir1 = np.argwhere(bandnames == b'SWIR1')[0][0]
     #swir2 = np.argwhere(bandnames == b'SWIR2')[0][0]
     #print(bandnames)
@@ -102,7 +102,7 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     # # RENDVI2 = (RE2 - RED) / (RE2 + RED)
     # rendvi2 = (inarray[:, re2] - inarray[:, red]) / (inarray[:, re2] + inarray[:, red])
     # # DSWI = (BNIR + GREEN) / (SWIR1 + RED)
-    dswi = (inarray[:, nir] + inarray[:, green]) / (inarray[:, swir1] + inarray[:, red])
+    dswi = (inarray[:, bnir] + inarray[:, green]) / (inarray[:, swir1] + inarray[:, red])
     # # MSI = SWIR1 / BNIR
     # msi = inarray[:, swir1] / inarray[:, bnir]
     # # NDWI = (BNIR - SWIR1) / (BNIR + SWIR1)
@@ -123,25 +123,34 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     ytrain = dswi[valid][np.logical_and(dswi[valid]<5,dswi[valid]>-5,np.isfinite(dswi[valid]))]
     xtrain = dates[valid][np.logical_and(dswi[valid]<5,dswi[valid]>-5,np.isfinite(dswi[valid]))]
 
-    #print(len(ytrain))
-    # fit
-    #try:
-    popt, _ = curve_fit(objective, xtrain, ytrain)
-    #except:
-        #print(xtrain)
-        #print(ytrain)
-
-    # predict
     xtest = np.array(range(start_date_pred_iso, end_date_pred_iso, step))
-    ytest = objective(xtest, *popt)
-    #
-    # # store results
-    #print(xtest)
-    #print(ytest)
 
-    #valid = np.isfinite(dswi)
-    #outarray[valid] = dswi[valid]
-    #outarray[:, :, 0, 0]=dswi[:, 0]
-    #outarray[:] = ytest
-    outarray[:-1]= ytest*100
-    outarray[-1:] = np.nanstd(ytrain)*100
+    try:
+        if len(xtrain) > 19:
+            popt, _ = curve_fit(objective, xtrain, ytrain)
+            ytest = objective(xtest, *popt)
+            outarray[:-2] = ytest * 100
+            outarray[-2:-1] = np.nanstd(ytrain) * 100
+            outarray[-1:] = 1
+        elif len(xtrain) > 14:
+            popt, _ = curve_fit(objective_advanced_notrend, xtrain, ytrain)
+            ytest = objective_advanced_notrend(xtest, *popt)
+            outarray[:-2] = ytest * 100
+            outarray[-2:-1] = np.nanstd(ytrain) * 100
+            outarray[-1:] = 2
+        elif len(xtrain) > 9:
+            popt, _ = curve_fit(objective_simple_notrend, xtrain, ytrain)
+            ytest = objective_simple_notrend(xtest, *popt)
+            outarray[:-2] = ytest * 100
+            outarray[-2:-1] = np.nanstd(ytrain) * 100
+            outarray[-1:] = 3
+        else:
+            xtest.fill(-9999)
+            outarray[:-2] = xtest
+            outarray[-2:-1] = np.nanstd(ytrain) * 100
+            outarray[-1:] = 4
+    except:
+        xtest.fill(-9999)
+        outarray[:-2] = xtest
+        outarray[-2:-1] = np.nanstd(ytrain) * 100
+        outarray[-1:] = 4

@@ -93,10 +93,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     cmd = f"sudo docker run -v {local_dir} davidfrantz/force " \
           f"force-mosaic {mask_folder}/{project_name}"
 
-    # if hold == True:
-    #     subprocess.run(['xterm','-hold','-e', cmd])
-    # else:
-    #     subprocess.run(['xterm', '-e', cmd])
+    if hold == True:
+        subprocess.run(['xterm','-hold','-e', cmd])
+    else:
+        subprocess.run(['xterm', '-e', cmd])
 
     subprocess.run(['sudo', 'chmod', '-R', '777', f"{mask_folder}/{project_name}"])
 

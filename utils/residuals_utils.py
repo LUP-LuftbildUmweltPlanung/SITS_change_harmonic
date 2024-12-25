@@ -17,7 +17,7 @@ def extract_data(raster_file,with_std):
     #raster_file=residuals_nrt
     with rasterio.open(raster_file) as src:
         if with_std == True:
-            count = (src.count)-1
+            count = (src.count)-2
         else:
             count = src.count
         
@@ -41,11 +41,16 @@ def extract_data(raster_file,with_std):
             std_raster_data = src.read(count+1)
             std_raster_data = std_raster_data.astype(float)
             std_raster_data[np.logical_or(std_raster_data==-9999,std_raster_data==0)] = np.nan
+
+            model = src.read(count+2)
+            model = model.astype(float)
+            model[np.logical_or(model == -9999, model == 0)] = np.nan
         else:
             std_raster_data = []
+            model = []
         
         
-        return nrt_raster_data.transpose(1,2,0), dates_nrt, sens, std_raster_data
+        return nrt_raster_data.transpose(1,2,0), dates_nrt, sens, std_raster_data, model
 
 def calculate_residuals(raster_tss_data,raster_tsi_data,dates_nrt,dates_tsi,relativ_prc_change):
     # Convert date strings to datetime objects
@@ -99,16 +104,17 @@ def get_output_array_full(nrt_raster_data, threshold):
         anomaly_prev = np.copy(anomaly_count)
         anomaly_bool = np.logical_and(anomaly_count != 3,layer_belowth)
         anomaly_count[anomaly_bool] = anomaly_count[anomaly_bool]+1
-        
+
         reset_bool = np.logical_and(anomaly_count == 3,layer_higherth) 
         reset_count[reset_bool] = reset_count[reset_bool]+1
-        count_up_reset = np.logical_and(anomaly_count != 3,layer_higherth) # for resetting anomaly counter when counting up to 3 and consequitive anomalies are disrupted 
-        
-        anomaly_count[np.logical_or(reset_count == 3,count_up_reset)] = 0 
-        
+
+        ##UNCOMMENT FOR RESETTING ANOMALIES WHEN GETTING BACK TO NORMAL BEHAVIOUR
+        count_up_reset = np.logical_and(anomaly_count != 3,layer_higherth) # for resetting anomaly counter when counting up to 3 and consequitive anomalies are disrupted
+        anomaly_count[np.logical_or(reset_count == 3,count_up_reset)] = 0
+
+
+
         #print(np.logical_and(anomaly_prev==anomaly_count,np.logical_and(anomaly_count!=0,anomaly_count!=3)).sum())
-        
-        
         #startend_dieback[:,:,full][np.logical_and(anomaly_prev == 2,anomaly_count ==3)]=1
         #startend_dieback[:,:,full][reset_count == 3]=2
         #unconfirmed_dist_array[:,:,full]=anomaly_count
@@ -201,7 +207,7 @@ def slice_by_date(output_array_full, dates_nrt, start_month, period_length):
 
 
 
-def plot_timeseries(tsi_time_series, tss_time_series, threshold, points, with_std, save_fig, ylab, title, id_column):
+def plot_timeseries(tsi_time_series, tss_time_series, threshold, uncertainty, points, with_std, save_fig, ylab, title, id_column):
 
     mtplt.rcParams['figure.dpi']= 300
     # Create a list of dates in tss_time_series
@@ -219,8 +225,13 @@ def plot_timeseries(tsi_time_series, tss_time_series, threshold, points, with_st
     tss_time_series = [ts for ts in tss_time_series if start_date <= ts[0] <= end_date]
 
     # Create the new time series with the values of time_series_2018 + threshold
-    time_series_threshold_plus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] + threshold] for i in range(len(tsi_time_series))]
-    time_series_threshold_minus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] - threshold] for i in range(len(tsi_time_series))]
+    if uncertainty == "prc":
+        time_series_threshold_plus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] * (1 + threshold / 100)] for i in range(len(tsi_time_series))]
+        time_series_threshold_minus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] * (1 - threshold / 100)] for i in range(len(tsi_time_series))]
+    else:
+        time_series_threshold_plus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] + threshold] for i in range(len(tsi_time_series))]
+        time_series_threshold_minus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] - threshold] for i in range(len(tsi_time_series))]
+
     plt.plot([tsi_time_series[j][0] for j in range(len(tsi_time_series))],[tsi_time_series[i][1] for i in range(len(tsi_time_series))], label=f"Erwartungswert", color='black',linewidth=1)
     #plt.plot([tsi_time_series[j][0] for j in range(len(tsi_time_series))], [tsi_time_series[i][1] for i in range(len(tsi_time_series))], label=f"Harmonic", color='black', linewidth=3)
     if with_std == True:

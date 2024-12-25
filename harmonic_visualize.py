@@ -13,11 +13,11 @@ import datetime
 import os
 from SITS_change_harmonic.utils.residuals_utils import extract_data, plot_timeseries
 
-raster_tsi = "/uge_mount/FORCE/new_struc/process/temp/xhain_20240731_prct_advancedharmonic_thresholdM1/tiles_tsi/X0069_Y0043/2016-2018_001-365_HL_UDF_SEN2L_PYP.tif"
-raster_tss = "/uge_mount/FORCE/new_struc/process/temp/xhain_20240731_prct_advancedharmonic_thresholdM1/tiles_tss/X0069_Y0043/2018-2024_001-365_HL_UDF_SEN2L_PYP.tif"
-points = gpd.read_file("/uge_mount/FORCE/new_struc/process/data/xhain/test_points.shp")
-save_fig = "/uge_mount/FORCE/new_struc/process/temp/xhain_20240731_prct_advancedharmonic_thresholdM1/output_figures"
-threshold = "std" # number[0,1,2,...] or "std"
+raster_tsi = "/uge_mount/FORCE/new_struc/process/temp/harmonic_V1_test/tiles_tsi/X0064_Y0049/2015-2018_001-365_HL_UDF_SEN2L_PYP.tif"
+raster_tss = "/uge_mount/FORCE/new_struc/process/temp/harmonic_V1_test/tiles_tss/X0064_Y0049/2018-2024_001-365_HL_UDF_SEN2L_PYP.tif"
+points = gpd.read_file("/uge_mount/FORCE/new_struc/process/data/harmonic_V1_test/test_points.shp")
+save_fig = "/uge_mount/FORCE/new_struc/process/data/harmonic_V1_test/test_points_15thresh2"
+uncertainty = "prc" # number[0,1,2,...] or "std"
 id_column = "Id"
 title = "Sentinel, Ref: Sentinel 2016-2018, Point ID: "
 ylab = "Vitalitätsindex DSWI"
@@ -27,7 +27,7 @@ ylab = "Vitalitätsindex DSWI"
 
 os.makedirs(save_fig, exist_ok=True)
 # Open the raster stack
-if threshold == "std":
+if (uncertainty == "std") or (uncertainty == "prc"):
     with_std = True
 else:
     with_std = False
@@ -67,9 +67,9 @@ for idx, point in points.iterrows():
         tss_time_series.append([time, values])
     
     if with_std == True:
-        threshold = (rasterstats.point_query(point.geometry, data_std,affine=affine, interpolate='nearest'))[0]*1
-    
-    plot_timeseries(tsi_time_series, tss_time_series, threshold, point, with_std, save_fig, ylab, title, id_column)
+        threshold = (rasterstats.point_query(point.geometry, data_std,affine=affine, interpolate='nearest'))[0]*1.5
+
+    plot_timeseries(tsi_time_series, tss_time_series, threshold,uncertainty, point, with_std, save_fig, ylab, title, id_column)
 
 
 

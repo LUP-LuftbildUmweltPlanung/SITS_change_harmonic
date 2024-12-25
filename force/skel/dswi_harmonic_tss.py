@@ -48,11 +48,11 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     #print(dates[0])
     #time.sleep(1000)
     green = np.argwhere(bandnames == b'GREEN')[0][0]
-    blue = np.argwhere(bandnames == b'BLUE')[0][0]
+    #blue = np.argwhere(bandnames == b'BLUE')[0][0]
     red = np.argwhere(bandnames == b'RED')[0][0]
     #re1 = np.argwhere(bandnames == b'REDEDGE1')[0][0]
     #re2 = np.argwhere(bandnames == b'REDEDGE2')[0][0]
-    nir = np.argwhere(bandnames == b'NIR')[0][0]
+    #nir = np.argwhere(bandnames == b'NIR')[0][0]
     bnir = np.argwhere(bandnames == b'BROADNIR')[0][0]
     swir1 = np.argwhere(bandnames == b'SWIR1')[0][0]
     #swir2 = np.argwhere(bandnames == b'SWIR2')[0][0]

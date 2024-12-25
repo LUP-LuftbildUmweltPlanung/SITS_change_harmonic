@@ -6,6 +6,8 @@ from dateutil.relativedelta import relativedelta
 import rasterio
 from rasterio.merge import merge
 import glob
+from scipy.stats import linregress
+import gc
 from utils.residuals_utils import extract_data
 from utils.residuals_utils import get_output_array_full
 from utils.residuals_utils import write_output_raster
@@ -14,7 +16,7 @@ from utils.residuals_utils import calculate_residuals
 
 
 startzeit = time.time()
-def harmonic(project_name,prc_change,deviation,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst, **kwargs):
+def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst, **kwargs):
 
     temp_folder = process_folder + "/temp"
     proc_folder = process_folder + "/results"
@@ -33,9 +35,14 @@ def harmonic(project_name,prc_change,deviation,int10p_whole,firstdate_whole,intp
         ## force mask / wald = 0, nodata sentinel = -9999
         residuals_nrt = None
 
-        raster_tss_data, dates_nrt, sens, __ = extract_data(raster_tss, with_std = False)
-        raster_tsi_data, dates_tsi, sens, data_std = extract_data(raster_tsi, with_std = True)
+        raster_tss_data, dates_nrt, sens, _, __ = extract_data(raster_tss, with_std = False)
+        raster_tsi_data, dates_tsi, sens, data_std, model = extract_data(raster_tsi, with_std = True)
         nrt_raster_data = calculate_residuals(raster_tss_data, raster_tsi_data, dates_nrt, dates_tsi,prc_change)
+
+        model[np.isnan(model)] = 9999
+        write_output_raster(raster_tss, output, model, f"/model.tif", 1)
+        model = None
+
         # nrt_raster_data = raster_tss_data
         print("###" * 10)
         print("finished calculating residuals\n")
@@ -46,6 +53,7 @@ def harmonic(project_name,prc_change,deviation,int10p_whole,firstdate_whole,intp
 
         if deviation == "thresholding":
             output_array_full, filtered = get_output_array_full(nrt_raster_data, threshold)
+            #output_array_full_nothresh = nrt_raster_data
         elif deviation == "raw":
             output_array_full = nrt_raster_data
         elif deviation == "safe":
@@ -130,13 +138,14 @@ def harmonic(project_name,prc_change,deviation,int10p_whole,firstdate_whole,intp
                 em_split = end_month.split(" ")
 
                 ## uncomment or adjust if some periods should be skipped
-                # if sm_split[0] == 'December':
-                #     print(f"period started with December skipped ...")
-                #     date = (datetime.strptime(date, '%Y-%m') + relativedelta(months=period_length)).strftime('%Y-%m')
-                #     continue
+                if sm_split[0] == 'December':
+                    print(f"period started with December skipped ...")
+                    date = (datetime.strptime(date, '%Y-%m') + relativedelta(months=period_length)).strftime('%Y-%m')
+                    continue
 
                 # Slice the data for the current date range
                 sliced_array = slice_by_date(output_array_full, dates_nrt, date, period_length)
+                #sliced_array_thresh = slice_by_date(output_array_full_nothresh, dates_nrt, date, period_length)
                 if deviation == "thresholding":
                     sliced_filter = slice_by_date(filtered, dates_nrt, date, period_length)
                 # Move to the next date range
@@ -148,11 +157,16 @@ def harmonic(project_name,prc_change,deviation,int10p_whole,firstdate_whole,intp
                 # do the calculations
                 print(f'calculate intensity ...')
                 a_p10 = np.nanpercentile(sliced_array, 10, axis=2)
+                #a_p10_nothresh = np.nanpercentile(sliced_array_thresh, 10, axis=2)
+                #a_p10 = np.nanmedian(sliced_array,axis=2)
 
                 # counts=(sliced_array<threshold).sum(axis=2)
                 # Fill NaN values
                 a_p10[np.isnan(a_p10)] = 9999
                 a_p10 = a_p10.astype(int)
+                #a_p10_nothresh[np.isnan(a_p10_nothresh)] = 9999
+                #a_p10_nothresh = a_p10_nothresh.astype(int)
+
                 #counts[np.isnan(counts)]= 9999
                 #counts = counts.astype(int)
 
@@ -167,7 +181,8 @@ def harmonic(project_name,prc_change,deviation,int10p_whole,firstdate_whole,intp
                 a_p10 = a_p10.astype(np.int32)
                 write_output_raster(raster_tss, output, a_p10,
                                     f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10.tif", 1)
-
+                #write_output_raster(raster_tss, output, a_p10_nothresh,
+                                    #f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10_nothresh.tif", 1)
 
                 # print(f'calculate meta ...')
                 # counts_disturbance = (~np.isnan(output_array_full)).sum(axis=2)

@@ -8,22 +8,22 @@ Created on Wed Feb 15 10:55:21 2023
 from SITS_change_harmonic.force.force_harmonic_utils import *
 from SITS_change_harmonic.utils.harmonic_utils import *
 
-#### Default Index DSWI -> to change adjust .force/skel/force_cube_sceleton_dswi*.py
-#### BNIR USED FOR DSWI, if harmonized with Landsat -> NIR must been changed in .force/skel/force_cube_sceleton_dswi*.py
+#### Default Index DSWI -> to change adjust .force/skel/dswi_harmonic*.py
+#### BNIR USED FOR DSWI, if harmonized with Landsat -> NIR must been changed in .force/skel/dswi_harmonic*.py
 params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "xhain_20240731_prct_advancedharmonic_thresholdM1", #Project Name that will be the name of output folder in temp & result subfolder
-    "aoi": "/uge_mount/FORCE/new_struc/process/data/xhain/xhain_2023.shp", #Define Area of Interest as Shapefile
+    "project_name": "harmonic_V1_test_thsaprob_small", #Project Name that will be the name of output folder in temp & result subfolder
+    "aoi": "/uge_mount/FORCE/new_struc/process/data/devtest_harmonic/missing.shp", #Define Area of Interest as Shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
-    "TSS_DATE_RANGE": "2018-01-01 2024-07-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
+    "TSS_DATE_RANGE": "2018-01-01 2024-12-31",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
-    "TSI_Sensors": "SEN2A SEN2B",#"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # Choose between Input Sensors
-    "TSI_DATE_RANGE": "2016-01-01 2018-01-01",# Reference Period for Interpolation Model
+    "TSI_Sensors": "SEN2A SEN2B", #"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # "SEN2A SEN2B",Choose between Input Sensors
+    "TSI_DATE_RANGE": "2016-01-01 2018-07-01",# Reference Period for Interpolation Model
 
     ###########################
     ##HARMONIC Postprocessing##
@@ -32,16 +32,17 @@ params = {
     # False --> residual change [threshold --> std of harmonic reference period]
     # True --> relative change in percent [threshold --> coefficient of variation - (std / mean ) * 100]
     "deviation": "thresholding", # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes
+    "trend_whole": False,
     "int10p_whole": False, # Calculate the 10th Perzentil (negative Devivations for negative Change in Spectral Value)
     "firstdate_whole": False, # Calculate the first Date the Change was detected
     "intp10_period": True, # Calculate the 10th Perzentil for periods specified below
     "mosaic": True, # Mosaic the final results?
 
-    "times_std": -1, # Threshold for ChangeDetection (std * -x | cv * -x)
+    "times_std": -1.5, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
-    "start_date": "2018-01", # Starting Date for Period Calculation
+    "start_date": "2018-06", # Starting Date for Period Calculation
     "end_date": "2024-12", # End Date for Period Calculation
-    "period_length": 12, # # Time Range for Period Calculation
+    "period_length": 3, # # Time Range for Period Calculation
     }
 
 advanced_params = {
@@ -80,14 +81,18 @@ advanced_params = {
     "TSI_NTHREAD_READ": 7,  # 4,
     "TSI_NTHREAD_COMPUTE": 7,  # 11,
     "TSI_NTHREAD_WRITE": 2,  # 2,
-    "TSI_BLOCK_SIZE": 300,
+    "TSI_BLOCK_SIZE": 1000,
     }
 
 
 if __name__ == '__main__':
+    startzeit = time.time()
+
     force_harmonic(**params,**advanced_params)
     harmonic(**params,**advanced_params)
 
+    endzeit = time.time()
+    print(endzeit - startzeit)
 
 
 
