@@ -14,12 +14,12 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "harmonic_V1_test_thsaprob_small", #Project Name that will be the name of output folder in temp & result subfolder
-    "aoi": "/uge_mount/FORCE/new_struc/process/data/devtest_harmonic/missing.shp", #Define Area of Interest as Shapefile
+    "project_name": "harmonic_V1_test_fast", #Project Name that will be the name of output folder in temp & result subfolder
+    "aoi": "/uge_mount/FORCE/new_struc/process/data/devtest_harmonic/thsa_prob.shp", #Define Area of Interest as Shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
-    "TSS_DATE_RANGE": "2018-01-01 2024-12-31",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
+    "TSS_DATE_RANGE": "2018-06-01 2024-12-31",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
     "TSI_Sensors": "SEN2A SEN2B", #"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # "SEN2A SEN2B",Choose between Input Sensors
