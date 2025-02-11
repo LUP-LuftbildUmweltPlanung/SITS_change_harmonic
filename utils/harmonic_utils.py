@@ -13,7 +13,7 @@ from utils.residuals_utils import get_output_array_full
 from utils.residuals_utils import write_output_raster
 from utils.residuals_utils import slice_by_date
 from utils.residuals_utils import calculate_residuals
-
+import fastnanquantile as fnq
 
 startzeit = time.time()
 def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst, **kwargs):
@@ -29,6 +29,8 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         print("###" * 10)
         print(f"TSI:  {raster_tsi}\nTSS:  {raster_tss}")
         output = raster_tss.replace(".tif", "_output")
+        if os.path.exists(output):
+            continue
         if not os.path.exists(output):
             os.mkdir(output)
 
@@ -37,11 +39,15 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
 
         raster_tss_data, dates_nrt, sens, _, __ = extract_data(raster_tss, with_std = False)
         raster_tsi_data, dates_tsi, sens, data_std, model = extract_data(raster_tsi, with_std = True)
-        nrt_raster_data = calculate_residuals(raster_tss_data, raster_tsi_data, dates_nrt, dates_tsi,prc_change)
 
         model[np.isnan(model)] = 9999
         write_output_raster(raster_tss, output, model, f"/model.tif", 1)
         model = None
+
+        nrt_raster_data = calculate_residuals(raster_tss_data, raster_tsi_data, dates_nrt, dates_tsi,prc_change)
+
+        raster_tsi_data = None
+        raster_tss_data = None
 
         # nrt_raster_data = raster_tss_data
         print("###" * 10)
@@ -66,8 +72,6 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
             continue
 
         nrt_raster_data = None
-        raster_tsi_data = None
-        raster_tss_data = None
         print("###" * 10)
         print("finished calculating anomaly intensities\n")
 
@@ -93,6 +97,8 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                         output_array[x, y] = int(dates_nrt[index].replace('-', '')[2:])
 
             output_array[np.isnan(output_array)] = 9999
+            missing_values = np.logical_and(output_array == 9999, ~forest_mask)
+            output_array[missing_values] = 5000
             output_array = output_array.astype(int)
 
             write_output_raster(raster_tss, output, output_array, f"/first_date.tif", 1)
@@ -105,6 +111,8 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
             a_p10 = np.nanpercentile(output_array_full, 10, axis=2)
             # Fill NaN values
             a_p10[np.isnan(a_p10)] = 9999
+            missing_values = np.logical_and(a_p10 == 9999, ~forest_mask)
+            a_p10[missing_values] = 5000
             a_p10 = a_p10.astype(int)
             write_output_raster(raster_tss, output, a_p10, f"/intensity.tif", 1)
 
@@ -156,7 +164,8 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
 
                 # do the calculations
                 print(f'calculate intensity ...')
-                a_p10 = np.nanpercentile(sliced_array, 10, axis=2)
+                #a_p10 = np.nanpercentile(sliced_array, 10, axis=2)
+                a_p10 = fnq.nanquantile(sliced_array, 0.1, axis=2)
                 #a_p10_nothresh = np.nanpercentile(sliced_array_thresh, 10, axis=2)
                 #a_p10 = np.nanmedian(sliced_array,axis=2)
 
@@ -248,7 +257,7 @@ def mosaic_rasters(input_pattern, output_filename):
         "height": mosaic.shape[1],
         "width": mosaic.shape[2],
         "transform": out_transform,
-        "compression": "lzw"
+        "compress": "lzw"
     })
 
     # Write the mosaic raster to disk

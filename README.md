@@ -28,16 +28,21 @@ It's based on the following folder structure:
 <div align="center">
 <img src="img/folder_structure.png" width="400" height="320">
 </div>
-Harmonic Model based on reference period will be used to predict expected spectral values. Those values will be compared with real spectral values regarding an uncertainty (standard deviation) and disturbance state can change with 3 consecutive times below or above threshold. 
+Harmonic Model based on reference period will be used to predict expected spectral values. Those values will be compared with real spectral values. You can choose between absolute or relative comparison.  
+<br> Furthermore the Deviation can also just be calculated for significant disturbances (3 consecutive times below or above specific threshold / standard deviation). 
 
 Results can be plots for points:
 
 <img src="img/change.png" width="360" height="240" /> <img src="img/nochange.png" width="360" height="240" />
 
-And results can be grid based where every pixel has:
+And results can be grid based where every pixel has e.g.:
 - the first date where the disturbance occurred
 - 90th percentile for disturbance residuals over the entire time period
 - 90th percentile for disturbance residuals within specified time ranges
+
+Output Values:  
+9999: areas with no disturbance & areas outside of AOI  
+5000: no valid data available within time range
 
 
 ### 2.2 Workflow

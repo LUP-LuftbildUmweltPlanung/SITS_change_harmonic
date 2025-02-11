@@ -13,13 +13,13 @@ import datetime
 import os
 from SITS_change_harmonic.utils.residuals_utils import extract_data, plot_timeseries
 
-raster_tsi = "/uge_mount/FORCE/new_struc/process/temp/harmonic_V1_test/tiles_tsi/X0064_Y0049/2015-2018_001-365_HL_UDF_SEN2L_PYP.tif"
-raster_tss = "/uge_mount/FORCE/new_struc/process/temp/harmonic_V1_test/tiles_tss/X0064_Y0049/2018-2024_001-365_HL_UDF_SEN2L_PYP.tif"
-points = gpd.read_file("/uge_mount/FORCE/new_struc/process/data/harmonic_V1_test/test_points.shp")
-save_fig = "/uge_mount/FORCE/new_struc/process/data/harmonic_V1_test/test_points_15thresh2"
+raster_tsi = "/uge_mount/FORCE/new_struc/process/temp/harmonic_bamberg2_drittgrund/tiles_tsi/X0064_Y0053/2016-2018_001-365_HL_UDF_SEN2L_PYP.tif"
+raster_tss = "/uge_mount/FORCE/new_struc/process/temp/harmonic_bamberg2_drittgrund/tiles_tss/X0064_Y0053/2018-2024_001-365_HL_UDF_SEN2L_PYP.tif"
+points = gpd.read_file("/uge_mount/FORCE/new_struc/process/data/RVT/bamberg_drittgrund_3035.shp")
+save_fig = "/uge_mount/FORCE/new_struc/process/temp/harmonic_bamberg2_drittgrund//figures_flaechVeg"
 uncertainty = "prc" # number[0,1,2,...] or "std"
-id_column = "Id"
-title = "Sentinel, Ref: Sentinel 2016-2018, Point ID: "
+id_column = "veg_drittg"
+title = "Sentinel, Ref: Sentinel 2016-2018, Drittgrund_TID: "
 ylab = "Vitalitätsindex DSWI"
 
 
@@ -32,8 +32,8 @@ if (uncertainty == "std") or (uncertainty == "prc"):
 else:
     with_std = False
 
-data_tsi, dates_tsi, _, data_std = extract_data(raster_tsi, with_std)
-data_tss, dates_tss, _, __ = extract_data(raster_tss, with_std=False)
+data_tsi, dates_tsi, _, data_std, model = extract_data(raster_tsi, with_std)
+data_tss, dates_tss, _, __, model = extract_data(raster_tss, with_std=False)
 
 with rasterio.open(raster_tss) as src:
     # Use the same affine as for the TSI data
@@ -67,7 +67,7 @@ for idx, point in points.iterrows():
         tss_time_series.append([time, values])
     
     if with_std == True:
-        threshold = (rasterstats.point_query(point.geometry, data_std,affine=affine, interpolate='nearest'))[0]*1.5
+        threshold = (rasterstats.point_query(point.geometry, data_std,affine=affine, interpolate='nearest'))[0]*1
 
     plot_timeseries(tsi_time_series, tss_time_series, threshold,uncertainty, point, with_std, save_fig, ylab, title, id_column)
 

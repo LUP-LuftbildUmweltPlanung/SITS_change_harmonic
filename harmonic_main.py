@@ -14,8 +14,8 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "harmonic_V1_test_fast", #Project Name that will be the name of output folder in temp & result subfolder
-    "aoi": "/uge_mount/FORCE/new_struc/process/data/devtest_harmonic/thsa_prob.shp", #Define Area of Interest as Shapefile
+    "project_name": "harmonic_bamberg2_drittgrund", #Project Name that will be the name of output folder in temp & result subfolder
+    "aoi": "/uge_mount/FORCE/new_struc/process/data/RVT/bamberg_drittgrund_3035.shp", #Define Area of Interest as Shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
@@ -23,7 +23,7 @@ params = {
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
     "TSI_Sensors": "SEN2A SEN2B", #"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # "SEN2A SEN2B",Choose between Input Sensors
-    "TSI_DATE_RANGE": "2016-01-01 2018-07-01",# Reference Period for Interpolation Model
+    "TSI_DATE_RANGE": "2016-01-01 2018-06-01",# Reference Period for Interpolation Model
 
     ###########################
     ##HARMONIC Postprocessing##
@@ -38,7 +38,7 @@ params = {
     "intp10_period": True, # Calculate the 10th Perzentil for periods specified below
     "mosaic": True, # Mosaic the final results?
 
-    "times_std": -1.5, # Threshold for ChangeDetection (std * -x | cv * -x)
+    "times_std": -1, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
     "start_date": "2018-06", # Starting Date for Period Calculation
     "end_date": "2024-12", # End Date for Period Calculation

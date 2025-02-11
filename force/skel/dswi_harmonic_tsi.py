@@ -8,14 +8,14 @@ start = date.fromisoformat('1970-01-01')
 start_date_pred = '2018-01-01'  # days since epoch (1970-01-01)
 end_date_pred = '2023-03-12'  # days since epoch (1970-01-01)
 step = 16  # days
-start_date_pred_iso = (date.fromisoformat(start_date_pred) - start).days  + 1
-end_date_pred_iso = (date.fromisoformat(end_date_pred) - start).days  + 1
+start_date_pred_iso = (date.fromisoformat(start_date_pred) - start).days + 1
+end_date_pred_iso = (date.fromisoformat(end_date_pred) - start).days + 1
 
 
 start_date_ref = '2010-01-01'  # days since epoch (1970-01-01)
 end_date_ref = '2018-01-01'  # days since epoch (1970-01-01)
-start_date_ref_iso = (date.fromisoformat(start_date_ref) - start).days  + 1
-end_date_ref_iso = (date.fromisoformat(end_date_ref) - start).days  + 1
+start_date_ref_iso = (date.fromisoformat(start_date_ref) - start).days + 1
+end_date_ref_iso = (date.fromisoformat(end_date_ref) - start).days + 1
 dates_ref = range(start_date_ref_iso, end_date_ref_iso, 1)
 
 

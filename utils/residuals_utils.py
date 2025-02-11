@@ -31,6 +31,13 @@ def extract_data(raster_file,with_std):
             bands_to_read.append(band+1)
             sens.append(sen)
             dates_nrt.append(dt.strftime("%Y-%m-%d"))
+
+            ## for faster inference skipping d,j,f, uncomment following lines and comment previous 3 lines
+            #month = dt.month
+            #if month not in [12,1,2]:
+                #bands_to_read.append(band+1)
+                #sens.append(sen)
+                #dates_nrt.append(dt.strftime("%Y-%m-%d"))
         
         nrt_raster_data = src.read(bands_to_read)
         nrt_raster_data = nrt_raster_data.astype(float)
