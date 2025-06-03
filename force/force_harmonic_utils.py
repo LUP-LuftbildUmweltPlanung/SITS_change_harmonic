@@ -182,18 +182,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         for line in lines:
             if line.strip() == "objective = objective_full":
                 # Replace the line
-                if Model == "simple_trend":
-                    file.write("objective = objective_simple\n")
-                elif Model == "simple_notrend":
-                    file.write("objective = objective_simple_notrend\n")
-                elif Model == "advanced_trend":
-                    file.write("objective = objective_advanced\n")
-                elif Model == "advanced_notrend":
-                    file.write("objective = objective_advanced_notrend\n")
-                elif Model == "full_trend":
-                    file.write("objective = objective_full\n")
-                elif Model == "full_notrend":
-                    file.write("objective = objective_full_notrend\n")
+                if Model == "trend":
+                    file.write("objective = 'trend'\n")
+                elif Model == "notrend":
+                    file.write("objective = 'notrend'\n")
                 else:
                     raise ValueError("Model name not existing! Choose viable model complexity.")
             else:

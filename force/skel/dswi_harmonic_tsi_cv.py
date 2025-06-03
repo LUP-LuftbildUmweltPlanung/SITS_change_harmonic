@@ -130,20 +130,39 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
 
     try:
         if len(xtrain) > 19:
-            popt, _ = curve_fit(objective, xtrain, ytrain)
-            ytest = objective(xtest, *popt)
+            if objective == 'notrend':
+                popt, _ = curve_fit(objective_full_notrend, xtrain, ytrain)
+                ytest = objective_full_notrend(xtest, *popt)
+            elif objective == 'trend':
+                popt, _ = curve_fit(objective_full, xtrain, ytrain)
+                ytest = objective_full(xtest, *popt)
+            else:
+                print("no valid objective")
+            ytest = objective_full_notrend(xtest, *popt)
             outarray[:-2] = ytest * 100
             outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
             outarray[-1:] = 1
         elif len(xtrain) > 14:
-            popt, _ = curve_fit(objective_advanced_notrend, xtrain, ytrain)
-            ytest = objective_advanced_notrend(xtest, *popt)
+            if objective == 'notrend':
+                popt, _ = curve_fit(objective_advanced_notrend, xtrain, ytrain)
+                ytest = objective_advanced_notrend(xtest, *popt)
+            elif objective == 'trend':
+                popt, _ = curve_fit(objective_advanced, xtrain, ytrain)
+                ytest = objective_advanced(xtest, *popt)
+            else:
+                print("no valid objective")
             outarray[:-2] = ytest * 100
             outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
             outarray[-1:] = 2
         elif len(xtrain) > 9:
-            popt, _ = curve_fit(objective_simple_notrend, xtrain, ytrain)
-            ytest = objective_simple_notrend(xtest, *popt)
+            if objective == 'notrend':
+                popt, _ = curve_fit(objective_simple_notrend, xtrain, ytrain)
+                ytest = objective_simple_notrend(xtest, *popt)
+            elif objective == 'trend':
+                popt, _ = curve_fit(objective_simple, xtrain, ytrain)
+                ytest = objective_simple(xtest, *popt)
+            else:
+                print("no valid objective")
             outarray[:-2] = ytest * 100
             outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
             outarray[-1:] = 3

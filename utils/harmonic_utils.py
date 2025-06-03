@@ -30,6 +30,7 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         print(f"TSI:  {raster_tsi}\nTSS:  {raster_tss}")
         output = raster_tss.replace(".tif", "_output")
         if os.path.exists(output):
+            print("Output Folder in TSS aleady exists. Skipping Processing ...")
             continue
         if not os.path.exists(output):
             os.mkdir(output)

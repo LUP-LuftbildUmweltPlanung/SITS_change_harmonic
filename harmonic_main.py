@@ -14,7 +14,7 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "harmonic_bamberg2_drittgrund", #Project Name that will be the name of output folder in temp & result subfolder
+    "project_name": "test", #Project Name that will be the name of output folder in temp & result subfolder
     "aoi": "/uge_mount/FORCE/new_struc/process/data/RVT/bamberg_drittgrund_3035.shp", #Define Area of Interest as Shapefile
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
@@ -59,13 +59,8 @@ advanced_params = {
     "TSS_BELOW_NOISE": 1, #get back values from qai masking below single std
     "TSS_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
-    "Model": "full_notrend",  # Choose the specific complexity of the harmonic model
-    # "simple_trend" -> clear observations 12 - 18 with trend
-    # "simple_notrend" -> clear observations 12 - 18 without trend
-    # "advanced_trend" -> clear observations 18 - 24 with trend
-    # "advanced_notrend" -> clear observations 18 - 24 without trend
-    # "full_trend" -> clear observations > 24 with trend
-    # "full_notrend" -> clear observations > 24 without trend
+    "Model": "notrend",  # you can choose between a model including or exluding trend ["notrend","trend"]
+    # there are three different complexities for the harmonic model, that will be chosen by the amount of valid spectral values within the reference period --> have a look at UDF - Function
 
     "TSI_ABOVE_NOISE": 3, #noise filtering in spectral values above 3 x std
     "TSI_BELOW_NOISE": 1, #get back values from qai masking below single std
