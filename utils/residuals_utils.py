@@ -90,6 +90,96 @@ def calculate_residuals(raster_tss_data,raster_tsi_data,dates_nrt,dates_tsi,rela
 
     return raster_tss_data
 
+
+def get_output_array_full(nrt_raster_data, threshold):
+    print(nrt_raster_data)
+    output_array_full = np.full(nrt_raster_data.shape, np.nan, dtype=nrt_raster_data.dtype)
+
+    filtered = np.zeros(nrt_raster_data.shape, dtype=bool)
+
+    # Zwei getrennte Anomalie-Counter (negativ / positiv)
+    anomaly_count_neg = np.zeros(nrt_raster_data.shape[:2], dtype=nrt_raster_data.dtype)
+    anomaly_count_pos = np.zeros(nrt_raster_data.shape[:2], dtype=nrt_raster_data.dtype)
+
+    reset_count_neg = np.zeros(nrt_raster_data.shape[:2], dtype=nrt_raster_data.dtype)
+    reset_count_pos = np.zeros(nrt_raster_data.shape[:2], dtype=nrt_raster_data.dtype)
+
+    for full, layer in enumerate(nrt_raster_data.transpose(2, 0, 1)):
+        print(f"Timestep {full} from {nrt_raster_data.shape[2]} processed ...")
+
+        layer_belowth = layer < -threshold  # negative Anomalien
+        layer_aboveth = layer > threshold  # positive Anomalien
+        layer_normal = np.logical_not(np.logical_or(layer_belowth, layer_aboveth))  # innerhalb normal
+
+        # === Negative Anomalien ===
+        anomaly_prev_neg = np.copy(anomaly_count_neg)
+        anomaly_bool_neg = np.logical_and(anomaly_count_neg != 3, layer_belowth)
+        anomaly_count_neg[anomaly_bool_neg] += 1
+
+        reset_bool_neg = np.logical_and(anomaly_count_neg == 3, ~layer_belowth)
+        print(reset_bool_neg)
+        reset_count_neg[reset_bool_neg] += 1
+        print(reset_count_neg)
+        count_up_reset_neg = np.logical_and(anomaly_count_neg != 3, np.logical_and(~layer_belowth, ~np.isnan(layer)))
+        anomaly_count_neg[np.logical_or(reset_count_neg == 3, count_up_reset_neg)] = 0
+        print(anomaly_count_neg)
+        # === Positive Anomalien ===
+        anomaly_prev_pos = np.copy(anomaly_count_pos)
+        anomaly_bool_pos = np.logical_and(anomaly_count_pos != 3, layer_aboveth)
+        anomaly_count_pos[anomaly_bool_pos] += 1
+
+        reset_bool_pos = np.logical_and(anomaly_count_pos == 3, ~layer_aboveth)
+        reset_count_pos[reset_bool_pos] += 1
+
+        count_up_reset_pos = np.logical_and(anomaly_count_pos != 3, np.logical_and(~layer_aboveth, ~np.isnan(layer)))
+        anomaly_count_pos[np.logical_or(reset_count_pos == 3, count_up_reset_pos)] = 0
+
+        # Definieren von positiven und negativen Anomalien
+        neg_anomaly = np.logical_and(anomaly_count_neg == 3, layer < -threshold)
+        pos_anomaly = np.logical_and(anomaly_count_pos == 3, layer > threshold)
+
+        # === Filter setzen ===
+        # Alle anderen Zeitpunkte sind nicht relevant → filtered = True
+        not_relevant = ~np.logical_or(neg_anomaly, pos_anomaly)
+        filtered[not_relevant, full] = True
+
+        # filtered_bool = np.logical_and(np.logical_and(anomaly_count_neg != 3, anomaly_count_pos != 3), ~np.isnan(layer))
+        # filtered[filtered_bool, full] = True
+
+        # === Ergebnis schreiben ===
+        output_bool = np.logical_or(neg_anomaly, pos_anomaly)
+        output_array_full[output_bool, full] = layer[output_bool]
+        print("output_array_1: ", output_array_full)
+        print("filtered_1: ", filtered)
+        # output_bool = np.logical_or(anomaly_count_neg == 3, anomaly_count_pos == 3)
+        # output_array_full[output_bool, full] = layer[output_bool]
+
+        # === Anomaliebeginn erkennen (negativ) ===
+        unconf_start_neg = np.logical_and(anomaly_prev_neg == 2, anomaly_count_neg == 3)
+        rows, cols = np.where(unconf_start_neg)
+        for r, c in zip(rows, cols):
+            non_nan_layers = np.where(~np.isnan(nrt_raster_data[r, c, :full]))[0][-2:]
+            output_array_full[r, c, non_nan_layers] = nrt_raster_data[r, c, non_nan_layers]
+            filtered[r, c, non_nan_layers] = False
+
+        # === Anomaliebeginn erkennen (positiv) ===
+        unconf_start_pos = np.logical_and(anomaly_prev_pos == 2, anomaly_count_pos == 3)
+        rows, cols = np.where(unconf_start_pos)
+        for r, c in zip(rows, cols):
+            non_nan_layers = np.where(~np.isnan(nrt_raster_data[r, c, :full]))[0][-2:]
+            output_array_full[r, c, non_nan_layers] = nrt_raster_data[r, c, non_nan_layers]
+            filtered[r, c, non_nan_layers] = False
+
+        # === Reset-Count zurücksetzen ===
+        reset_count_neg[np.logical_or(reset_count_neg == 3, layer_belowth)] = 0
+        reset_count_pos[np.logical_or(reset_count_pos == 3, layer_aboveth)] = 0
+
+        print("output_array_2: ", output_array_full)
+        print("filtered_2: ", filtered)
+
+    return output_array_full, filtered
+
+''' 
 def get_output_array_full(nrt_raster_data, threshold):
     output_array_full = np.zeros((nrt_raster_data.shape),dtype = nrt_raster_data.dtype)
     output_array_full[output_array_full==0] = np.nan
@@ -167,10 +257,9 @@ def get_output_array_full(nrt_raster_data, threshold):
 
         # # resetting reset_count
         # reset_count[np.logical_or(reset_count == 3,layer_belowth)] = 0
-    
 
     return output_array_full, filtered
-
+'''
 
 
 def write_output_raster(nrt_raster,output, array, suffix, nbands):
@@ -211,7 +300,6 @@ def slice_by_date(output_array_full, dates_nrt, start_month, period_length):
     #sliced_array = output_array_full[:, :, start_index]
     
     return sliced_array
-
 
 
 def plot_timeseries(tsi_time_series, tss_time_series, threshold, uncertainty, points, with_std, save_fig, ylab, title, id_column):
@@ -261,42 +349,37 @@ def plot_timeseries(tsi_time_series, tss_time_series, threshold, uncertainty, po
         
         if np.isnan(tss_time_series[i][1][0]):
             continue
-        elif tss_time_series[i][1][0] < time_series_threshold_minus[i][1]:
-            y_counter = y_counter +1
+        elif tss_time_series[i][1][0] < time_series_threshold_minus[i][1] or tss_time_series[i][1][0] > time_series_threshold_plus[i][1]:
+            y_counter += 1
             if not display_anomaly:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange', label=f"Anomalie",s=8)
+                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange', label="Anomalie", s=8)
                 display_anomaly = True
             else:
                 if y_counter >= 3:
                     if not display_disturbance:
-                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='red', label=f"Störung",s=8)
+                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='red', label="Störung", s=8)
                         display_disturbance = True
-                    else: 
-                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='red',s=8)
-                    
-                    
-                    
-                    ### no stable solution!! if anomaly counter is triggered (3) the past two observations are going to be anomaly as well
-                    #But have to check for nan values in past so not sure how many steps has to look back
+                    else:
+                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='red', s=8)
+
+                    # auch hier: rückwirkend Punkte einfärben
                     for count in range(8):
-                        c = count+1
+                        c = count + 1
                         c_stop = 0
-                        if np.isnan(tss_time_series[i-c][1][0]):
+                        if np.isnan(tss_time_series[i - c][1][0]):
                             continue
-                        elif tss_time_series[i-c][1][0] < time_series_threshold_minus[i-c][1]:
-                            plt.scatter(tss_time_series[i-c][0], tss_time_series[i-c][1], color='red',s=8)
+                        elif tss_time_series[i - c][1][0] < time_series_threshold_minus[i - c][1] or \
+                                tss_time_series[i - c][1][0] > time_series_threshold_plus[i - c][1]:
+                            plt.scatter(tss_time_series[i - c][0], tss_time_series[i - c][1], color='red', s=8)
                             c_stop += 1
-                        else: 
+                        else:
                             c_stop += 1
                         if c_stop == 3:
                             break
-                    
-
-                    
                 else:
-                    plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange',s=8)
-            if n_counter < 3: 
-                n_counter = 0 
+                    plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange', s=8)
+            if n_counter < 3:
+                n_counter = 0
         else:
             if not display_tss:
                 #plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', label=f"Oberservation",s=8)

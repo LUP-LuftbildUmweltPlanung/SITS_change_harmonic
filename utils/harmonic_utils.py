@@ -31,7 +31,7 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         output = raster_tss.replace(".tif", "_output")
         if os.path.exists(output):
             print("Output Folder in TSS aleady exists. Skipping Processing ...")
-            continue
+            #continue
         if not os.path.exists(output):
             os.mkdir(output)
 
@@ -54,13 +54,12 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         print("###" * 10)
         print("finished calculating residuals\n")
 
-        threshold = data_std * times_std
+        threshold = abs(data_std * times_std)
         # get forest mask lately ... assumption that all values in z dimension are nan
         forest_mask = np.isnan(nrt_raster_data).all(axis=2)
 
         if deviation == "thresholding":
             output_array_full, filtered = get_output_array_full(nrt_raster_data, threshold)
-            #output_array_full_nothresh = nrt_raster_data
         elif deviation == "raw":
             output_array_full = nrt_raster_data
         elif deviation == "safe":
@@ -166,6 +165,7 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 # do the calculations
                 print(f'calculate intensity ...')
                 #a_p10 = np.nanpercentile(sliced_array, 10, axis=2)
+                #sliced_array[sliced_array > 0] = np.nan
                 a_p10 = fnq.nanquantile(sliced_array, 0.1, axis=2)
                 #a_p10_nothresh = np.nanpercentile(sliced_array_thresh, 10, axis=2)
                 #a_p10 = np.nanmedian(sliced_array,axis=2)
