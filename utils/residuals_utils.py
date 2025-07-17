@@ -92,7 +92,7 @@ def calculate_residuals(raster_tss_data,raster_tsi_data,dates_nrt,dates_tsi,rela
 
 
 def get_output_array_full(nrt_raster_data, threshold):
-    print(nrt_raster_data)
+    #print(nrt_raster_data)
     output_array_full = np.full(nrt_raster_data.shape, np.nan, dtype=nrt_raster_data.dtype)
 
     filtered = np.zeros(nrt_raster_data.shape, dtype=bool)
@@ -105,7 +105,7 @@ def get_output_array_full(nrt_raster_data, threshold):
     reset_count_pos = np.zeros(nrt_raster_data.shape[:2], dtype=nrt_raster_data.dtype)
 
     for full, layer in enumerate(nrt_raster_data.transpose(2, 0, 1)):
-        print(f"Timestep {full} from {nrt_raster_data.shape[2]} processed ...")
+        #print(f"Timestep {full} from {nrt_raster_data.shape[2]} processed ...")
 
         layer_belowth = layer < -threshold  # negative Anomalien
         layer_aboveth = layer > threshold  # positive Anomalien
@@ -117,12 +117,12 @@ def get_output_array_full(nrt_raster_data, threshold):
         anomaly_count_neg[anomaly_bool_neg] += 1
 
         reset_bool_neg = np.logical_and(anomaly_count_neg == 3, ~layer_belowth)
-        print(reset_bool_neg)
+        #print(reset_bool_neg)
         reset_count_neg[reset_bool_neg] += 1
-        print(reset_count_neg)
+        #print(reset_count_neg)
         count_up_reset_neg = np.logical_and(anomaly_count_neg != 3, np.logical_and(~layer_belowth, ~np.isnan(layer)))
         anomaly_count_neg[np.logical_or(reset_count_neg == 3, count_up_reset_neg)] = 0
-        print(anomaly_count_neg)
+        #print(anomaly_count_neg)
         # === Positive Anomalien ===
         anomaly_prev_pos = np.copy(anomaly_count_pos)
         anomaly_bool_pos = np.logical_and(anomaly_count_pos != 3, layer_aboveth)
@@ -149,8 +149,8 @@ def get_output_array_full(nrt_raster_data, threshold):
         # === Ergebnis schreiben ===
         output_bool = np.logical_or(neg_anomaly, pos_anomaly)
         output_array_full[output_bool, full] = layer[output_bool]
-        print("output_array_1: ", output_array_full)
-        print("filtered_1: ", filtered)
+        #print("output_array_1: ", output_array_full)
+        #print("filtered_1: ", filtered)
         # output_bool = np.logical_or(anomaly_count_neg == 3, anomaly_count_pos == 3)
         # output_array_full[output_bool, full] = layer[output_bool]
 
@@ -174,8 +174,8 @@ def get_output_array_full(nrt_raster_data, threshold):
         reset_count_neg[np.logical_or(reset_count_neg == 3, layer_belowth)] = 0
         reset_count_pos[np.logical_or(reset_count_pos == 3, layer_aboveth)] = 0
 
-        print("output_array_2: ", output_array_full)
-        print("filtered_2: ", filtered)
+        #print("output_array_2: ", output_array_full)
+        #print("filtered_2: ", filtered)
 
     return output_array_full, filtered
 

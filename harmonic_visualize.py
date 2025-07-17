@@ -13,13 +13,13 @@ import datetime
 import os
 from utils.residuals_utils import extract_data, plot_timeseries
 
-raster_tsi = "/uge_mount/Freddy/harmonic_model/process/temp/neg2/tiles_tsi/X0058_Y0056/2016-2018_001-365_HL_UDF_SEN2L_PYP.tif" #"/uge_mount/Freddy/harmonic_model/process/temp/pos/tiles_tsi/X0057_Y0048/2016-2018_001-365_HL_UDF_SEN2L_PYP.tif"
-raster_tss = "/uge_mount/Freddy/harmonic_model/process/temp/neg2/tiles_tss/X0058_Y0056/2024-2024_001-365_HL_UDF_SEN2L_PYP.tif" #"/uge_mount/Freddy/harmonic_model/process/temp/pos/tiles_tss/X0057_Y0048/2024-2024_001-365_HL_UDF_SEN2L_PYP.tif"
-points = gpd.read_file("/uge_mount/Freddy/harmonic_model/data/points_neg2.shp")
-save_fig = "/uge_mount/Freddy/harmonic_model/process/temp/neg2/"
+raster_tsi = "/rvt_mount/process/temp/test_time1_6months/tiles_tsi/X0064_Y0050/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif" #"/uge_mount/Freddy/harmonic_model/process/temp/pos/tiles_tsi/X0057_Y0048/2016-2018_001-365_HL_UDF_SEN2L_PYP.tif"
+raster_tss = "/rvt_mount/process/temp/test_time1_6months/tiles_tss/X0064_Y0050/2024-2024_001-365_HL_UDF_SEN2L_PYP.tif" #"/uge_mount/Freddy/harmonic_model/process/temp/pos/tiles_tss/X0057_Y0048/2024-2024_001-365_HL_UDF_SEN2L_PYP.tif"
+points = gpd.read_file("/rvt_mount/3DTests/data/harm_data/ilmenau_points.shp")
+save_fig = "/rvt_mount/process/temp/test_time1_6months"
 uncertainty = "prc" # number[0,1,2,...] or "std"
 id_column = "id"
-title = "test_positive_change_visualize"
+title = "test_positive_change_visualize_6months"
 ylab = "Vitalitätsindex DSWI"
 
 # Open the raster stack

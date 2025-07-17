@@ -15,7 +15,45 @@ from utils.residuals_utils import slice_by_date
 from utils.residuals_utils import calculate_residuals
 import fastnanquantile as fnq
 
+import time
+def format_time(seconds):
+    """Format the time in hours, minutes, and seconds."""
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    return f"{int(hours)}h {int(minutes)}m {int(seconds)}s"
+
 startzeit = time.time()
+
+
+# def optimized_a_p10_function(sliced_array):
+#     # Ensure sliced_array is a NumPy array
+#     sliced_array = np.array(sliced_array)
+#
+#     # Create an empty array to store the quantile results
+#     a_p10 = np.empty(sliced_array.shape[:2], dtype=int)  # Use int directly to avoid the final cast
+#
+#     # Compute positive and negative values counts
+#     positive_values = np.sum(sliced_array > 0, axis=2)
+#     negative_values = np.sum(sliced_array <= 0, axis=2)
+#
+#     # Compute the majority mask (True for majority positive, False for majority negative)
+#     majority_positive_mask = positive_values > negative_values
+#
+#     # Vectorized quantile calculation based on the majority mask
+#     for i in range(sliced_array.shape[0]):  # Iterate over rows
+#         for j in range(sliced_array.shape[1]):  # Iterate over columns
+#             quantile_value = 0.9 if majority_positive_mask[i, j] else 0.1
+#             # Calculate the quantile for the current pixel's time series slice
+#             quantile_result = np.nanquantile(sliced_array[i, j, :], quantile_value)
+#             if np.isnan(quantile_result):  # If quantile result is NaN, replace it with 9999
+#                 quantile_result = 9999
+#             a_p10[i, j] = quantile_result
+#
+#     # Return the result as integer array
+#     return a_p10.astype(int)
+
+
 def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst, **kwargs):
 
     temp_folder = process_folder + "/temp"
@@ -126,7 +164,7 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
 
             print("###" * 10)
             print(f'finished intensity for whole time period (residual related)\n')
-
+#################
         if intp10_period == True:
             ###############################################################
             ################ ITERATE OVER TIME PERIODS ####################
@@ -166,14 +204,89 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 print(f'calculate intensity ...')
                 #a_p10 = np.nanpercentile(sliced_array, 10, axis=2)
                 #sliced_array[sliced_array > 0] = np.nan
-                a_p10 = fnq.nanquantile(sliced_array, 0.1, axis=2)
+                startzeit_force = time.time()
+                # force_harmonic(**params, **advanced_params)
+
+                #######################################################
+                sliced_array = np.array(sliced_array)
+
+                # Zähle positive und negative Werte
+                positive_values = np.sum(sliced_array > 0, axis=2)
+                negative_values = np.sum(sliced_array <= 0, axis=2)
+
+                # Maske: True = mehr positive Werte, False = mehr negative/gleiche
+                mask_positive = positive_values > negative_values
+
+                # Initialisiere Ergebnisarray
+                a_p10 = np.empty(sliced_array.shape[:2])  # Vorbelegen mit 9999
+
+                # Berechne das 90. Perzentil für alle "positiven" Pixel
+                if np.any(mask_positive):
+                    a_p10[mask_positive] = np.nanquantile(
+                        sliced_array[mask_positive], 0.9, axis=1
+                    )
+
+                # Berechne das 10. Perzentil für alle "negativen" Pixel
+                mask_negative = ~mask_positive
+                if np.any(mask_negative):
+                    a_p10[mask_negative] = np.nanquantile(
+                        sliced_array[mask_negative], 0.1, axis=1
+                    )
+
+                # In Integer umwandeln
+                a_p10[np.isnan(a_p10)] = 9999
+                a_p10 = a_p10.astype(int)
+
+                endzeit_force = time.time()
+                force_harmonic_time_ = endzeit_force - startzeit_force
+                print(f"function modified: {format_time(force_harmonic_time_)}")
+
+
+                ##############################################################
+
+                # sliced_array = np.array(sliced_array)
+                #
+                # a_p10 = np.empty(sliced_array.shape[:2])  # Create an empty array to store the quantile results
+                #
+                # # Check the majority of the values in sliced_array
+                # positive_values = np.sum(sliced_array > 0, axis=2)
+                # negative_values = np.sum(sliced_array <= 0, axis=2)
+                #
+                # # Apply the logic based on the majority
+                # for i in range(sliced_array.shape[0]):  # Iterate over all slices
+                #     for j in range(sliced_array.shape[1]):  # Iterate over the second dimension
+                #         if positive_values[i, j] > negative_values[i, j]:
+                #             quantile_value = 0.9  # Majority are positive, use 0.9 quantile
+                #         else:
+                #             quantile_value = 0.1  # Majority are negative, use 0.1 quantile
+                #
+                #         # Calculate the quantile based on the result and store in the a_p10 array
+                #         quantile_result = np.nanquantile(sliced_array[i, j, :], quantile_value)
+                #         if np.isnan(quantile_result):  # If quantile result is NaN, replace it with 9999
+                #             quantile_result = 9999
+                #         a_p10[i, j] = quantile_result
+                #
+                # # Replace NaN values with 9999
+                # a_p10[np.isnan(a_p10)] = 9999
+                # a_p10 = a_p10.astype(int)
+
+                #a_p10 = optimized_a_p10_function(sliced_array)
+
+
+
+                ##############################################
+
+                # a_p10 = fnq.nanquantile(sliced_array, 0.1, axis=2)
+                # a_p10[np.isnan(a_p10)] = 9999
+                # a_p10 = a_p10.astype(int)
+
+
                 #a_p10_nothresh = np.nanpercentile(sliced_array_thresh, 10, axis=2)
                 #a_p10 = np.nanmedian(sliced_array,axis=2)
 
                 # counts=(sliced_array<threshold).sum(axis=2)
                 # Fill NaN values
-                a_p10[np.isnan(a_p10)] = 9999
-                a_p10 = a_p10.astype(int)
+
                 #a_p10_nothresh[np.isnan(a_p10_nothresh)] = 9999
                 #a_p10_nothresh = a_p10_nothresh.astype(int)
 
