@@ -92,9 +92,7 @@ def calculate_residuals(raster_tss_data,raster_tsi_data,dates_nrt,dates_tsi,rela
 
 
 def get_output_array_full(nrt_raster_data, threshold):
-    #print(nrt_raster_data)
     output_array_full = np.full(nrt_raster_data.shape, np.nan, dtype=nrt_raster_data.dtype)
-
     filtered = np.zeros(nrt_raster_data.shape, dtype=bool)
 
     # Zwei getrennte Anomalie-Counter (negativ / positiv)
@@ -109,7 +107,7 @@ def get_output_array_full(nrt_raster_data, threshold):
 
         layer_belowth = layer < -threshold  # negative Anomalien
         layer_aboveth = layer > threshold  # positive Anomalien
-        layer_normal = np.logical_not(np.logical_or(layer_belowth, layer_aboveth))  # innerhalb normal
+        #layer_normal = np.logical_not(np.logical_or(layer_belowth, layer_aboveth))  # innerhalb normal
 
         # === Negative Anomalien ===
         anomaly_prev_neg = np.copy(anomaly_count_neg)
@@ -117,12 +115,11 @@ def get_output_array_full(nrt_raster_data, threshold):
         anomaly_count_neg[anomaly_bool_neg] += 1
 
         reset_bool_neg = np.logical_and(anomaly_count_neg == 3, ~layer_belowth)
-        #print(reset_bool_neg)
         reset_count_neg[reset_bool_neg] += 1
-        #print(reset_count_neg)
+
         count_up_reset_neg = np.logical_and(anomaly_count_neg != 3, np.logical_and(~layer_belowth, ~np.isnan(layer)))
         anomaly_count_neg[np.logical_or(reset_count_neg == 3, count_up_reset_neg)] = 0
-        #print(anomaly_count_neg)
+
         # === Positive Anomalien ===
         anomaly_prev_pos = np.copy(anomaly_count_pos)
         anomaly_bool_pos = np.logical_and(anomaly_count_pos != 3, layer_aboveth)
@@ -143,16 +140,9 @@ def get_output_array_full(nrt_raster_data, threshold):
         not_relevant = ~np.logical_or(neg_anomaly, pos_anomaly)
         filtered[not_relevant, full] = True
 
-        # filtered_bool = np.logical_and(np.logical_and(anomaly_count_neg != 3, anomaly_count_pos != 3), ~np.isnan(layer))
-        # filtered[filtered_bool, full] = True
-
         # === Ergebnis schreiben ===
         output_bool = np.logical_or(neg_anomaly, pos_anomaly)
         output_array_full[output_bool, full] = layer[output_bool]
-        #print("output_array_1: ", output_array_full)
-        #print("filtered_1: ", filtered)
-        # output_bool = np.logical_or(anomaly_count_neg == 3, anomaly_count_pos == 3)
-        # output_array_full[output_bool, full] = layer[output_bool]
 
         # === Anomaliebeginn erkennen (negativ) ===
         unconf_start_neg = np.logical_and(anomaly_prev_neg == 2, anomaly_count_neg == 3)
@@ -174,92 +164,7 @@ def get_output_array_full(nrt_raster_data, threshold):
         reset_count_neg[np.logical_or(reset_count_neg == 3, layer_belowth)] = 0
         reset_count_pos[np.logical_or(reset_count_pos == 3, layer_aboveth)] = 0
 
-        #print("output_array_2: ", output_array_full)
-        #print("filtered_2: ", filtered)
-
     return output_array_full, filtered
-
-''' 
-def get_output_array_full(nrt_raster_data, threshold):
-    output_array_full = np.zeros((nrt_raster_data.shape),dtype = nrt_raster_data.dtype)
-    output_array_full[output_array_full==0] = np.nan
-    #unconfirmed_dist_array = np.zeros((nrt_raster_data.shape),dtype = np.int8)
-    #unconfirmed_dist_array_test = np.zeros((nrt_raster_data.shape),dtype = np.int8)
-    #unconfirmed_release_array = np.zeros((nrt_raster_data.shape),dtype = np.int8)
-    #unconfirmed_release_array_test = np.zeros((nrt_raster_data.shape),dtype = np.int8)
-    #startend_dieback = np.zeros((nrt_raster_data.shape),dtype = np.int8)
-
-    filtered = np.zeros((nrt_raster_data.shape), dtype=bool)
-    anomaly_count = np.zeros((nrt_raster_data.shape[0],nrt_raster_data.shape[1]),dtype = nrt_raster_data.dtype)
-    reset_count = np.zeros((nrt_raster_data.shape[0],nrt_raster_data.shape[1]),dtype = nrt_raster_data.dtype)
-
-    for full,layer in enumerate(nrt_raster_data.transpose(2,0,1)):
-        print(f"Timestep {full} from {nrt_raster_data.shape[2]} processed ...")
-        layer_belowth = layer < threshold ## Cloudmasked & Forestmasked --> false as well
-        layer_higherth = layer > threshold ## Cloudmasked & Forestmasked --> false as well
-        
-        anomaly_prev = np.copy(anomaly_count)
-        anomaly_bool = np.logical_and(anomaly_count != 3,layer_belowth)
-        anomaly_count[anomaly_bool] = anomaly_count[anomaly_bool]+1
-
-        reset_bool = np.logical_and(anomaly_count == 3,layer_higherth) 
-        reset_count[reset_bool] = reset_count[reset_bool]+1
-
-        ##UNCOMMENT FOR RESETTING ANOMALIES WHEN GETTING BACK TO NORMAL BEHAVIOUR
-        count_up_reset = np.logical_and(anomaly_count != 3,layer_higherth) # for resetting anomaly counter when counting up to 3 and consequitive anomalies are disrupted
-        anomaly_count[np.logical_or(reset_count == 3,count_up_reset)] = 0
-
-
-
-        #print(np.logical_and(anomaly_prev==anomaly_count,np.logical_and(anomaly_count!=0,anomaly_count!=3)).sum())
-        #startend_dieback[:,:,full][np.logical_and(anomaly_prev == 2,anomaly_count ==3)]=1
-        #startend_dieback[:,:,full][reset_count == 3]=2
-        #unconfirmed_dist_array[:,:,full]=anomaly_count
-        #unconfirmed_release_array[:,:,full]=reset_count
-
-        filtered_bool = np.logical_and(anomaly_count != 3,~np.isnan(layer))
-        filtered[filtered_bool,full] = True
-        #print(sum(filtered))
-        output_bool = anomaly_count == 3
-        output_array_full[output_bool,full] = layer[output_bool]
-
-        
-        ## New Emergency Solution that is stable - not emergency
-        # Identify anomalies that started or ended
-        unconf_start = np.logical_and(anomaly_prev == 2, anomaly_count == 3)
-        unconf_end = reset_count == 3
-
-        # For each position in unconf_start and unconf_end, identify the last two non-NaN layers
-        rows, cols = np.where(unconf_start)
-        for r, c in zip(rows, cols):
-            non_nan_layers = np.where(~np.isnan(nrt_raster_data[r, c, :full]))[0][-2:]
-            output_array_full[r, c, non_nan_layers] = nrt_raster_data[r, c, non_nan_layers]
-            filtered[r, c, non_nan_layers] = False
-        rows, cols = np.where(unconf_end)
-        for r, c in zip(rows, cols):
-            non_nan_layers = np.where(~np.isnan(nrt_raster_data[r, c, :full]))[0][-2:]
-            output_array_full[r, c, non_nan_layers] = np.nan
-            filtered[r, c, non_nan_layers] = True
-
-        # resetting reset_count
-        reset_count[np.logical_or(reset_count == 3, layer_belowth)] = 0        
-        
-
-        
-        ###OLD SOLUTION#####Emergency solution!! Currently, when a disturbance is released/started, the time frame of the last two recordings is adjusted ... NA values ​​in past recordings are not yet taken into account.
-        # full_minus = max(0,full-2)
-
-        # unconf_bool = np.logical_and(anomaly_prev == 2,anomaly_count ==3)
-        # #unconfirmed_dist_array_test[unconf_bool,full_minus:full] = 5
-        # #unconfirmed_release_array_test[reset_count==3,full_minus:full+1]= 5  
-        # output_array_full[unconf_bool,full_minus:full] = nrt_raster_data[unconf_bool,full_minus:full]
-        # output_array_full[reset_count==3,full_minus:full+1] = np.nan
-
-        # # resetting reset_count
-        # reset_count[np.logical_or(reset_count == 3,layer_belowth)] = 0
-
-    return output_array_full, filtered
-'''
 
 
 def write_output_raster(nrt_raster,output, array, suffix, nbands):
@@ -279,7 +184,6 @@ def write_output_raster(nrt_raster,output, array, suffix, nbands):
         with rasterio.open(output + suffix, 'w', **kwargs) as dst:
             for bcount in range(nbands):
                 dst.write(array[:,:,bcount], bcount+1)
-
 
 
 def slice_by_date(output_array_full, dates_nrt, start_month, period_length):

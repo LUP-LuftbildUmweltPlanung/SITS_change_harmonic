@@ -96,17 +96,18 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         # get forest mask lately ... assumption that all values in z dimension are nan
         forest_mask = np.isnan(nrt_raster_data).all(axis=2)
 
-        if deviation == "thresholding":
-            output_array_full, filtered = get_output_array_full(nrt_raster_data, threshold)
-        elif deviation == "raw":
-            output_array_full = nrt_raster_data
-        elif deviation == "safe":
+        if "safe" in deviation:
             output_array_full = nrt_raster_data
             forest_mask_extended = forest_mask[:, :, np.newaxis]
             missing_values = np.logical_and(np.isnan(output_array_full), ~forest_mask_extended)
             output_array_full[missing_values] = 5000
             output_array_full[np.isnan(output_array_full)] = 9999
             write_output_raster(raster_tss, output, output_array_full, f"/residuals.tif", rasterio.open(raster_tss).count)
+        if "thresholding" in deviation:
+            output_array_full, filtered = get_output_array_full(nrt_raster_data, threshold)
+        elif "raw" in deviation:
+            output_array_full = nrt_raster_data
+        else:
             continue
 
         nrt_raster_data = None
@@ -164,7 +165,7 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
 
             print("###" * 10)
             print(f'finished intensity for whole time period (residual related)\n')
-#################
+
         if intp10_period == True:
             ###############################################################
             ################ ITERATE OVER TIME PERIODS ####################
@@ -210,30 +211,30 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 #######################################################
                 sliced_array = np.array(sliced_array)
 
-                # Zähle positive und negative Werte
+                # count number of positive and negative values in array
                 positive_values = np.sum(sliced_array > 0, axis=2)
                 negative_values = np.sum(sliced_array <= 0, axis=2)
 
-                # Maske: True = mehr positive Werte, False = mehr negative/gleiche
+                # create mask: if True = more positive than negative values; if false more negative than positive values
                 mask_positive = positive_values > negative_values
 
-                # Initialisiere Ergebnisarray
+                # initialise output array
                 a_p10 = np.empty(sliced_array.shape[:2])  # Vorbelegen mit 9999
 
-                # Berechne das 90. Perzentil für alle "positiven" Pixel
+                # calculate 90 percentil for all pixel with more positive values within period
                 if np.any(mask_positive):
                     a_p10[mask_positive] = np.nanquantile(
                         sliced_array[mask_positive], 0.9, axis=1
                     )
 
-                # Berechne das 10. Perzentil für alle "negativen" Pixel
+                # calculate 10 percentil for all pixel with more negative values within period
                 mask_negative = ~mask_positive
                 if np.any(mask_negative):
                     a_p10[mask_negative] = np.nanquantile(
                         sliced_array[mask_negative], 0.1, axis=1
                     )
 
-                # In Integer umwandeln
+                # change to integer
                 a_p10[np.isnan(a_p10)] = 9999
                 a_p10 = a_p10.astype(int)
 
@@ -342,12 +343,16 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
             #print(mosaic_files)
             base = os.path.basename(file)
             output_filename = f"{proc_folder}/{project_name}/{base}"
-            mosaic_rasters(mosaic_files, output_filename)
+            if "residuals.tif" in base:
+                mosaic_rasters(mosaic_files, output_filename, band_descriptions=dates_nrt)
+            else:
+                mosaic_rasters(mosaic_files, output_filename)
+            #mosaic_rasters(mosaic_files, output_filename)
 
 
 
 
-def mosaic_rasters(input_pattern, output_filename):
+def mosaic_rasters(input_pattern, output_filename, band_descriptions=None):
     """
     Mosaic rasters matching the input pattern and save to output_filename.
 
@@ -377,6 +382,10 @@ def mosaic_rasters(input_pattern, output_filename):
     # Write the mosaic raster to disk
     with rasterio.open(output_filename, "w", **out_meta) as dest:
         dest.write(mosaic)
+        if band_descriptions:
+            for i, desc in enumerate(band_descriptions, start=1):
+                if desc:
+                    dest.set_band_description(i, desc)
 
     # Close the input files
     for src in src_files_to_mosaic:
