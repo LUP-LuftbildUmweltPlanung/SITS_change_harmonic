@@ -96,18 +96,18 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         # get forest mask lately ... assumption that all values in z dimension are nan
         forest_mask = np.isnan(nrt_raster_data).all(axis=2)
 
-        if "safe" in deviation:
-            output_array_full = nrt_raster_data
-            forest_mask_extended = forest_mask[:, :, np.newaxis]
-            missing_values = np.logical_and(np.isnan(output_array_full), ~forest_mask_extended)
-            output_array_full[missing_values] = 5000
-            output_array_full[np.isnan(output_array_full)] = 9999
-            write_output_raster(raster_tss, output, output_array_full, f"/residuals.tif", rasterio.open(raster_tss).count)
         if "thresholding" in deviation:
             output_array_full, filtered = get_output_array_full(nrt_raster_data, threshold)
-        elif "raw" in deviation:
+        if "raw" in deviation:
             output_array_full = nrt_raster_data
-        else:
+        if "safe" in deviation:
+            output_array_raw = nrt_raster_data
+            forest_mask_extended = forest_mask[:, :, np.newaxis]
+            missing_values = np.logical_and(np.isnan(output_array_raw), ~forest_mask_extended)
+            output_array_raw[missing_values] = 5000
+            output_array_raw[np.isnan(output_array_raw)] = 9999
+            write_output_raster(raster_tss, output, output_array_raw, f"/residuals.tif", rasterio.open(raster_tss).count)
+        if deviation == ["safe"]:
             continue
 
         nrt_raster_data = None
@@ -210,9 +210,9 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
 
                 #######################################################
                 sliced_array = np.array(sliced_array)
-
+                print("Max value in sliced_array:", np.nanmax(sliced_array))
                 # count number of positive and negative values in array
-                positive_values = np.sum(sliced_array > 0, axis=2)
+                positive_values = np.sum((sliced_array > 0), axis=2)
                 negative_values = np.sum(sliced_array <= 0, axis=2)
 
                 # create mask: if True = more positive than negative values; if false more negative than positive values
@@ -242,58 +242,6 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 force_harmonic_time_ = endzeit_force - startzeit_force
                 print(f"function modified: {format_time(force_harmonic_time_)}")
 
-
-                ##############################################################
-
-                # sliced_array = np.array(sliced_array)
-                #
-                # a_p10 = np.empty(sliced_array.shape[:2])  # Create an empty array to store the quantile results
-                #
-                # # Check the majority of the values in sliced_array
-                # positive_values = np.sum(sliced_array > 0, axis=2)
-                # negative_values = np.sum(sliced_array <= 0, axis=2)
-                #
-                # # Apply the logic based on the majority
-                # for i in range(sliced_array.shape[0]):  # Iterate over all slices
-                #     for j in range(sliced_array.shape[1]):  # Iterate over the second dimension
-                #         if positive_values[i, j] > negative_values[i, j]:
-                #             quantile_value = 0.9  # Majority are positive, use 0.9 quantile
-                #         else:
-                #             quantile_value = 0.1  # Majority are negative, use 0.1 quantile
-                #
-                #         # Calculate the quantile based on the result and store in the a_p10 array
-                #         quantile_result = np.nanquantile(sliced_array[i, j, :], quantile_value)
-                #         if np.isnan(quantile_result):  # If quantile result is NaN, replace it with 9999
-                #             quantile_result = 9999
-                #         a_p10[i, j] = quantile_result
-                #
-                # # Replace NaN values with 9999
-                # a_p10[np.isnan(a_p10)] = 9999
-                # a_p10 = a_p10.astype(int)
-
-                #a_p10 = optimized_a_p10_function(sliced_array)
-
-
-
-                ##############################################
-
-                # a_p10 = fnq.nanquantile(sliced_array, 0.1, axis=2)
-                # a_p10[np.isnan(a_p10)] = 9999
-                # a_p10 = a_p10.astype(int)
-
-
-                #a_p10_nothresh = np.nanpercentile(sliced_array_thresh, 10, axis=2)
-                #a_p10 = np.nanmedian(sliced_array,axis=2)
-
-                # counts=(sliced_array<threshold).sum(axis=2)
-                # Fill NaN values
-
-                #a_p10_nothresh[np.isnan(a_p10_nothresh)] = 9999
-                #a_p10_nothresh = a_p10_nothresh.astype(int)
-
-                #counts[np.isnan(counts)]= 9999
-                #counts = counts.astype(int)
-
                 if deviation == "thresholding":
                     sliced_filter_2d = np.any(sliced_filter, axis=2)
                     sliced_filter_2d_nan = np.logical_and(a_p10 == 9999, sliced_filter_2d)
@@ -305,24 +253,11 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 a_p10 = a_p10.astype(np.int32)
                 write_output_raster(raster_tss, output, a_p10,
                                     f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10.tif", 1)
-                #write_output_raster(raster_tss, output, a_p10_nothresh,
-                                    #f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10_nothresh.tif", 1)
-
-                # print(f'calculate meta ...')
-                # counts_disturbance = (~np.isnan(output_array_full)).sum(axis=2)
-                # counts_nodisturbance = (~(~np.isnan(output_array_full))).sum(axis=2)
-                # counts_all = counts_nodisturbance + counts_disturbance
-                # counts_perz = ((counts_disturbance/counts_all)*100).astype(int)
-
-                # counts_disturbance[forest_mask] = 9999
-                # counts_all[forest_mask] = 9999
-                # counts_perz[forest_mask] = 9999
-                # meta = np.stack((counts_disturbance, counts_all, counts_perz))
-                # write_output_raster(residuals_nrt,output, meta.transpose(2,1,0), f"\\{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_META.tif",3)
 
         sliced_array = None
         sliced_filter = None
         output_array_full = None
+
     if mosaic == True:
 
         if not os.path.exists(f"{proc_folder}"):
