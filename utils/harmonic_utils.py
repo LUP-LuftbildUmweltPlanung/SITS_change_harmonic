@@ -108,9 +108,8 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 print("###" * 10)
                 print(f'finished intensity for whole time period (residual related)\n')
             if intp10_period == True:
-                a_p10, sm_split, em_split = calculate_intp10_period(start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, "thresholding")
-                write_output_raster(raster_tss, output, a_p10,
-                                    f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10_threshold.tif", 1)
+                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, "thresholding")
+
         if "raw" in deviation:
             output_array_full = nrt_raster_data
             if firstdate_whole == True:
@@ -122,9 +121,8 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 print("###" * 10)
                 print(f'finished intensity for whole time period (residual related)\n')
             if intp10_period == True:
-                a_p10, sm_split, em_split = calculate_intp10_period(start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask)
-                write_output_raster(raster_tss, output, a_p10,
-                                    f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10_raw.tif", 1)
+                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, "raw")
+
         if "safe" in deviation:
             output_array_raw = nrt_raster_data
             forest_mask_extended = forest_mask[:, :, np.newaxis]

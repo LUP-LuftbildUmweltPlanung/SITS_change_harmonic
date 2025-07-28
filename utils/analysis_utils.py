@@ -63,7 +63,7 @@ def calculate_int10p_whole(output_array_full, forest_mask):
     return a_p10
 
 
-def calculate_intp10_period (start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, mode=None):
+def calculate_intp10_period (raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, mode=None):
     ###############################################################
     ################ ITERATE OVER TIME PERIODS ####################
     ###############################################################
@@ -146,4 +146,5 @@ def calculate_intp10_period (start_date, end_date, period_length, dates_nrt, out
         a_p10[missing_values] = 5000
         a_p10 = a_p10.astype(np.int32)
 
-        return a_p10, sm_split, em_split
+        write_output_raster(raster_tss, output, a_p10,
+                            f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10_{mode}.tif", 1)

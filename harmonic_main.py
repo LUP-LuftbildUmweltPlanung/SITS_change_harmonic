@@ -32,18 +32,18 @@ params = {
     "prc_change": True, # way of analyse change in spectral value related to harmonic model prediction
     # False --> residual change [threshold --> std of harmonic reference period]
     # True --> relative change in percent [threshold --> coefficient of variation - (std / mean ) * 100]
-    "deviation": ["thresholding", "safe", "raw"], # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes; it's possible to input multiple options
-    "trend_whole": True,
-    "int10p_whole": True, # Calculate the 10th Perzentil (negative Devivations for negative Change in Spectral Value)
-    "firstdate_whole": True, # Calculate the first Date the Change was detected
+    "deviation": ["thresholding", "raw"], # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes; it's possible to input multiple options
+    "trend_whole": False,
+    "int10p_whole": False, # Calculate the 10th Perzentil (negative Devivations for negative Change in Spectral Value)
+    "firstdate_whole": False, # Calculate the first Date the Change was detected
     "intp10_period": True, # Calculate the 10th Perzentil for periods specified below
     "mosaic": True, # Mosaic the final results?
 
     "times_std": -1, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
     "start_date": "2024-03", # Starting Date for Period Calculation
-    "end_date": "2024-05", # End Date for Period Calculation  2025-07
-    "period_length": 2, # # Time Range for Period Calculation
+    "end_date": "2024-11", # End Date for Period Calculation  2025-07
+    "period_length": 3, # # Time Range for Period Calculation
     }
 
 advanced_params = {
