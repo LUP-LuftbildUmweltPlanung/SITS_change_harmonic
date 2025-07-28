@@ -15,8 +15,9 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "test_both2", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
-    "aoi": "/uge_mount/Freddy/harmonic_model/data/positive_disturbence/mini_aoi_pos.shp", #Define Area of Interest as Shapefile
+    "project_name": "all_included_test", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
+    "aoi": "/rvt_mount/3DTests/data/harm_data/ilmenau.shp", #Define Area of Interest as Shapefile
+    "points_path": "/rvt_mount/3DTests/data/harm_data/ilmenau_points.shp",
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
@@ -32,7 +33,7 @@ params = {
     "prc_change": True, # way of analyse change in spectral value related to harmonic model prediction
     # False --> residual change [threshold --> std of harmonic reference period]
     # True --> relative change in percent [threshold --> coefficient of variation - (std / mean ) * 100]
-    "deviation": ["thresholding", "raw"], # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes; it's possible to input multiple options
+    "deviation": ["thresholding"], # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes; it's possible to input multiple options
     "trend_whole": False,
     "int10p_whole": False, # Calculate the 10th Perzentil (negative Devivations for negative Change in Spectral Value)
     "firstdate_whole": False, # Calculate the first Date the Change was detected
@@ -41,14 +42,14 @@ params = {
 
     "times_std": -1, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
-    "start_date": "2024-03", # Starting Date for Period Calculation
-    "end_date": "2024-11", # End Date for Period Calculation  2025-07
+    "start_date": "2024-06", # Starting Date for Period Calculation
+    "end_date": "2024-8", # End Date for Period Calculation  2025-07
     "period_length": 3, # # Time Range for Period Calculation
     }
 
 advanced_params = {
     #BASIC
-    "process_folder": "/uge_mount/Freddy/harmonic_model/process/", # Folder where Data and Results will be processed (will be created if not existing)
+    "process_folder": "/rvt_mount/process/", # Folder where Data and Results will be processed (will be created if not existing)
     "force_dir": "/force", # mount directory for FORCE-Datacube - should look like /force_mount/FORCE/C1/L2/..
     #"tsi_lst" : glob(".../tiles_tsi/X*/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"),
     #"tss_lst" : glob(".../tiles_tss/X*/2018-2023_001-365_HL_UDF_SEN2L_PYP.tif"),
@@ -71,12 +72,12 @@ advanced_params = {
 
     #Streaming Mechnism
     "TSS_NTHREAD_READ": 7,  # 4,
-    "TSS_NTHREAD_COMPUTE": 7,  # 11,
-    "TSS_NTHREAD_WRITE": 2,  # 2,
+    "TSS_NTHREAD_COMPUTE": 9,  # 11,
+    "TSS_NTHREAD_WRITE": 3,  # 2,
     "TSS_BLOCK_SIZE": 1000,
     "TSI_NTHREAD_READ": 7,  # 4,
-    "TSI_NTHREAD_COMPUTE": 7,  # 11,
-    "TSI_NTHREAD_WRITE": 2,  # 2,
+    "TSI_NTHREAD_COMPUTE": 9,  # 11,
+    "TSI_NTHREAD_WRITE": 3,  # 2,
     "TSI_BLOCK_SIZE": 1000,
     }
 
@@ -92,19 +93,19 @@ if __name__ == '__main__':
     startzeit_force = time.time()
     #force_harmonic(**params, **advanced_params)
     endzeit_force = time.time()
-    #force_harmonic_time = endzeit_force - startzeit_force
-    #print(f"force_harmonic executed in: {format_time(force_harmonic_time)}")
+    force_harmonic_time = endzeit_force - startzeit_force
+    print(f"force_harmonic executed in: {format_time(force_harmonic_time)}")
 
     # Measure time for harmonic
-    #startzeit_harmonic = time.time()
+    startzeit_harmonic = time.time()
     harmonic(**params, **advanced_params)
-    #endzeit_harmonic = time.time()
-    #harmonic_time = endzeit_harmonic - startzeit_harmonic
-    #print(f"harmonic executed in: {format_time(harmonic_time)}")
+    endzeit_harmonic = time.time()
+    harmonic_time = endzeit_harmonic - startzeit_harmonic
+    print(f"harmonic executed in: {format_time(harmonic_time)}")
 
     # Total time
-    #total_time = force_harmonic_time + harmonic_time
-    #print(f"Total execution time: {format_time(total_time)}")
+    total_time = force_harmonic_time + harmonic_time
+    print(f"Total execution time: {format_time(total_time)}")
 
 
 

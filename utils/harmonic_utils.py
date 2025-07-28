@@ -8,13 +8,16 @@ from rasterio.merge import merge
 import glob
 from scipy.stats import linregress
 import gc
-from utils.residuals_utils import extract_data
-from utils.residuals_utils import get_output_array_full
-from utils.residuals_utils import write_output_raster
-from utils.residuals_utils import slice_by_date
-from utils.residuals_utils import calculate_residuals
+import rasterstats
+import geopandas as gpd
+import rasterio
 from utils.analysis_utils import *
-import fastnanquantile as fnq
+from utils.residuals_utils import *
+# from utils.residuals_utils import extract_data
+# from utils.residuals_utils import get_output_array_full
+# from utils.residuals_utils import write_output_raster
+# from utils.residuals_utils import slice_by_date
+# from utils.residuals_utils import calculate_residuals
 
 
 def format_time(seconds):
@@ -26,36 +29,41 @@ def format_time(seconds):
 
 startzeit = time.time()
 
+def process_point_timeseries(raster_tsi_path, raster_tss_path, points_path, save_fig,
+                             uncertainty="prc", id_column="id", title="Time Series Comparison", ylab="Value"):
 
-# def optimized_a_p10_function(sliced_array):
-#     # Ensure sliced_array is a NumPy array
-#     sliced_array = np.array(sliced_array)
-#
-#     # Create an empty array to store the quantile results
-#     a_p10 = np.empty(sliced_array.shape[:2], dtype=int)  # Use int directly to avoid the final cast
-#
-#     # Compute positive and negative values counts
-#     positive_values = np.sum(sliced_array > 0, axis=2)
-#     negative_values = np.sum(sliced_array <= 0, axis=2)
-#
-#     # Compute the majority mask (True for majority positive, False for majority negative)
-#     majority_positive_mask = positive_values > negative_values
-#
-#     # Vectorized quantile calculation based on the majority mask
-#     for i in range(sliced_array.shape[0]):  # Iterate over rows
-#         for j in range(sliced_array.shape[1]):  # Iterate over columns
-#             quantile_value = 0.9 if majority_positive_mask[i, j] else 0.1
-#             # Calculate the quantile for the current pixel's time series slice
-#             quantile_result = np.nanquantile(sliced_array[i, j, :], quantile_value)
-#             if np.isnan(quantile_result):  # If quantile result is NaN, replace it with 9999
-#                 quantile_result = 9999
-#             a_p10[i, j] = quantile_result
-#
-#     # Return the result as integer array
-#     return a_p10.astype(int)
+    points = gpd.read_file(points_path)
+
+    with_std = uncertainty in ["std", "prc"]
+
+    data_tsi, dates_tsi, _, data_std, model = extract_data(raster_tsi_path, with_std)
+    data_tss, dates_tss, _, __, model = extract_data(raster_tss_path, with_std=False)
+
+    with rasterio.open(raster_tss_path) as src:
+        affine = src.transform
+
+    for idx, point in points.iterrows():
+        tsi_time_series = []
+        for i, step in enumerate(data_tsi.transpose(2, 0, 1)):
+            time = datetime.strptime(dates_tsi[i], '%Y-%m-%d').date()
+            values = rasterstats.point_query(point.geometry, step, affine=affine, interpolate='nearest')
+            tsi_time_series.append([time, np.nan if values[0] == -9999 else values])
+
+        tss_time_series = []
+        for i, step in enumerate(data_tss.transpose(2, 0, 1)):
+            time = datetime.strptime(dates_tss[i], '%Y-%m-%d').date()
+            values = rasterstats.point_query(point.geometry, step, affine=affine, interpolate='nearest')
+            tss_time_series.append([time, np.nan if values[0] == -9999 else values])
+
+        threshold = None
+        if with_std:
+            threshold = rasterstats.point_query(point.geometry, data_std, affine=affine, interpolate='nearest')[0]
+
+        plot_timeseries(tsi_time_series, tss_time_series, threshold, uncertainty, point,
+                        with_std, save_fig, ylab, title, id_column)
 
 
-def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst, **kwargs):
+def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst,points_path, **kwargs):
 
     temp_folder = process_folder + "/temp"
     proc_folder = process_folder + "/results"
@@ -160,7 +168,19 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 mosaic_rasters(mosaic_files, output_filename)
             #mosaic_rasters(mosaic_files, output_filename)
 
-
+    if points_path:
+        print("Starting point time series visualization")
+        for raster_tsi, raster_tss in zip(tsi_lst, tss_lst):
+            process_point_timeseries(
+                raster_tsi_path=raster_tsi,
+                raster_tss_path=raster_tss,
+                points_path=points_path,
+                save_fig= f"{proc_folder}/{project_name}",
+                uncertainty="prc",  # or parameterize if needed
+                id_column="id",
+                title="Pixel analyzsis",
+                ylab="Vitalitätsindex DSWI"
+            )
 
 
 def mosaic_rasters(input_pattern, output_filename, band_descriptions=None):

@@ -208,133 +208,133 @@ def slice_by_date(output_array_full, dates_nrt, start_month, period_length):
 
 def plot_timeseries(tsi_time_series, tss_time_series, threshold, uncertainty, points, with_std, save_fig, ylab, title, id_column):
 
-    mtplt.rcParams['figure.dpi']= 300
+    mtplt.rcParams['figure.dpi'] = 300
+
     # Create a list of dates in tss_time_series
     dates = [ts[0] for ts in tss_time_series]
 
     # Interpolate the tsi_time_series data to match the dates in tss_time_series
-    interpolated_tsi = np.interp([d.toordinal() for d in dates], [d.toordinal() for d in [ts[0] for ts in tsi_time_series]], [ts[1][0] for ts in tsi_time_series])
+    interpolated_tsi = np.interp([d.toordinal() for d in dates],
+                                 [d.toordinal() for d in [ts[0] for ts in tsi_time_series]],
+                                 [ts[1][0] for ts in tsi_time_series])
     tsi_time_series = [[d, [tsi]] for d, tsi in zip(dates, interpolated_tsi)]
-    plt.figure(figsize=(10, 5))
-    # Plot the TSI and TSS time series data
-    start_date = datetime.datetime(2018, 1, 1).date()
-    end_date = datetime.datetime(2024, 12, 31).date()
 
+    plt.figure(figsize=(10, 5))
+
+    start_date = datetime.date(2018, 1, 1)
+    end_date = datetime.date(2024, 12, 31)
     tsi_time_series = [ts for ts in tsi_time_series if start_date <= ts[0] <= end_date]
     tss_time_series = [ts for ts in tss_time_series if start_date <= ts[0] <= end_date]
 
-    # Create the new time series with the values of time_series_2018 + threshold
+    # Threshold ranges
     if uncertainty == "prc":
-        time_series_threshold_plus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] * (1 + threshold / 100)] for i in range(len(tsi_time_series))]
-        time_series_threshold_minus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] * (1 - threshold / 100)] for i in range(len(tsi_time_series))]
+        time_series_threshold_plus = [[ts[0], ts[1][0] * (1 + threshold / 100)] for ts in tsi_time_series]
+        time_series_threshold_minus = [[ts[0], ts[1][0] * (1 - threshold / 100)] for ts in tsi_time_series]
     else:
-        time_series_threshold_plus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] + threshold] for i in range(len(tsi_time_series))]
-        time_series_threshold_minus = [[tsi_time_series[i][0], tsi_time_series[i][1][0] - threshold] for i in range(len(tsi_time_series))]
+        time_series_threshold_plus = [[ts[0], ts[1][0] + threshold] for ts in tsi_time_series]
+        time_series_threshold_minus = [[ts[0], ts[1][0] - threshold] for ts in tsi_time_series]
 
-    plt.plot([tsi_time_series[j][0] for j in range(len(tsi_time_series))],[tsi_time_series[i][1] for i in range(len(tsi_time_series))], label=f"Erwartungswert", color='black',linewidth=1)
-    #plt.plot([tsi_time_series[j][0] for j in range(len(tsi_time_series))], [tsi_time_series[i][1] for i in range(len(tsi_time_series))], label=f"Harmonic", color='black', linewidth=3)
-    if with_std == True:
-        #plt.plot([time_series_threshold_plus[j][0] for j in range(len(time_series_threshold_plus))], [time_series_threshold_plus[i][1] for i in range(len(time_series_threshold_plus))], color='black', label=f"Threshold (1*std): {threshold}", linewidth=1, linestyle='dashed')
-        plt.plot([time_series_threshold_plus[j][0] for j in range(len(time_series_threshold_plus))],[time_series_threshold_plus[i][1] for i in range(len(time_series_threshold_plus))], color='black', label=f"Toleranzbereich", linewidth=0.5, linestyle='dashed')
-    else: 
-        plt.plot([time_series_threshold_plus[j][0] for j in range(len(time_series_threshold_plus))], [time_series_threshold_plus[i][1] for i in range(len(time_series_threshold_plus))], color='black', label=f"Threshold: {threshold}", linewidth=0.5, linestyle='dashed')
-    plt.plot([time_series_threshold_minus[j][0] for j in range(len(time_series_threshold_minus))], [time_series_threshold_minus[i][1] for i in range(len(time_series_threshold_minus))], color='black',linewidth=0.5, linestyle='dashed')
+    # Plot expected value and thresholds
+    plt.plot([ts[0] for ts in tsi_time_series], [ts[1][0] for ts in tsi_time_series], label="Erwartungswert", color='black', linewidth=1)
+
+    if with_std:
+        plt.plot([ts[0] for ts in time_series_threshold_plus], [ts[1] for ts in time_series_threshold_plus],
+                 color='black', label="Toleranzbereich", linewidth=0.5, linestyle='dashed')
+    else:
+        plt.plot([ts[0] for ts in time_series_threshold_plus], [ts[1] for ts in time_series_threshold_plus],
+                 color='black', label=f"Threshold: {threshold}", linewidth=0.5, linestyle='dashed')
+
+    plt.plot([ts[0] for ts in time_series_threshold_minus], [ts[1] for ts in time_series_threshold_minus],
+             color='black', linewidth=0.5, linestyle='dashed')
+
+    # Predefine the disturbance legend entries for positive and negative disturbances
+    plt.scatter([], [], color='blue', label="Positive Störung", s=8)
+    plt.scatter([], [], color='red', label="Negative Störung", s=8)
 
     display_anomaly = False
     display_disturbance = False
     display_tss = False
-    y_counter = 0#anomaly yes
-    n_counter = 0#anomaly no
+    y_counter = 0
+    n_counter = 0
+
     for i in range(len(tss_time_series)):
-        #print(tss_time_series)
-        #print(tss_time_series[i][0])   #  date
-        #print(tss_time_series[i][1][0])# value
-        
-        
         if np.isnan(tss_time_series[i][1][0]):
             continue
-        elif tss_time_series[i][1][0] < time_series_threshold_minus[i][1] or tss_time_series[i][1][0] > time_series_threshold_plus[i][1]:
+
+        tss_val = tss_time_series[i][1][0]
+        threshold_upper = time_series_threshold_plus[i][1]
+        threshold_lower = time_series_threshold_minus[i][1]
+
+        if tss_val < threshold_lower or tss_val > threshold_upper:
+            # This value is outside the threshold, consider it an anomaly or disturbance
             y_counter += 1
+
             if not display_anomaly:
                 plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange', label="Anomalie", s=8)
                 display_anomaly = True
             else:
                 if y_counter >= 3:
+                    # Determine color for disturbance
+                    disturbance_color = 'blue' if tss_val > threshold_upper else 'red'
                     if not display_disturbance:
-                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='red', label="Störung", s=8)
+                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color=disturbance_color, s=8)#label="Störung",
                         display_disturbance = True
                     else:
-                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='red', s=8)
+                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color=disturbance_color, s=8)
 
-                    # auch hier: rückwirkend Punkte einfärben
+                    # Backward propagation of disturbance
                     for count in range(8):
                         c = count + 1
-                        c_stop = 0
-                        if np.isnan(tss_time_series[i - c][1][0]):
+                        if i - c < 0 or np.isnan(tss_time_series[i - c][1][0]):
                             continue
-                        elif tss_time_series[i - c][1][0] < time_series_threshold_minus[i - c][1] or \
-                                tss_time_series[i - c][1][0] > time_series_threshold_plus[i - c][1]:
-                            plt.scatter(tss_time_series[i - c][0], tss_time_series[i - c][1], color='red', s=8)
-                            c_stop += 1
-                        else:
-                            c_stop += 1
-                        if c_stop == 3:
+                        past_val = tss_time_series[i - c][1][0]
+                        if past_val < time_series_threshold_minus[i - c][1] or past_val > time_series_threshold_plus[i - c][1]:
+                            back_color = 'blue' if past_val > time_series_threshold_plus[i - c][1] else "red"######red
+                            plt.scatter(tss_time_series[i - c][0], tss_time_series[i - c][1], color=back_color, s=8)
+                        if count == 3:
                             break
                 else:
                     plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange', s=8)
+
             if n_counter < 3:
                 n_counter = 0
         else:
+            # This value is within the threshold range, consider it a "Vitalwert"
             if not display_tss:
-                #plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', label=f"Oberservation",s=8)
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', label=f"Vitalwert", s=8)
+                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', label="Vitalwert", s=8)
                 display_tss = True
             else:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green',s=8)
+                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', s=8)
 
-            
-            n_counter = n_counter +1
-            
-            if y_counter <3:
+            n_counter += 1
+            if y_counter < 3:
                 y_counter = 0
+
             if n_counter == 3:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green',s=8)
-                
-                ### no stable solution!! if reset counter is triggered (3) the past two observations are going to be resetted as well. 
-                #But have to check for nan values in past so not sure how many steps has to look back
+                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', s=8)
                 for count in range(8):
-                    c = count+1
-                    c_stop = 0
-                    if np.isnan(tss_time_series[i-c][1][0]):
+                    c = count + 1
+                    if i - c < 0 or np.isnan(tss_time_series[i - c][1][0]):
                         continue
-                    elif tss_time_series[i-c][1][0] > time_series_threshold_minus[i-c][1]:
-                        plt.scatter(tss_time_series[i-c][0], tss_time_series[i-c][1], color='green',s=8)
-                        c_stop += 1
-                    else: 
-                        c_stop += 1
-                    if c_stop == 3:
+                    if tss_time_series[i - c][1][0] > time_series_threshold_minus[i - c][1]:
+                        plt.scatter(tss_time_series[i - c][0], tss_time_series[i - c][1], color='green', s=8)
+                    if count == 3:
                         break
                 n_counter = 0
                 y_counter = 0
 
-
-            if y_counter >=3:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='red',s=8)
-
+            if y_counter >= 3:
+                # Ensure the color remains blue or red based on the threshold
+                color_final = 'red' if tss_val < threshold_lower else 'green'#########blue - red
+                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color=color_final, s=8)
 
     pid = str(getattr(points, id_column))
-    #pid = str(points.ProbeBNr)
-
-    #plt.title(f"Sentinel, Ref: S&L 2010-2017, Class: {dsc}, Point ID: {pid}")
-    plt.title(title+str(pid))
+    plt.title(title + str(pid))
     plt.legend(loc=3, prop={'size': 7})
-    #plt.xlabel("Time")
     plt.xlabel("Jahr")
     plt.xticks(fontsize=6)
-    #plt.ylabel("DSWI (Scalefactor:100)")
     plt.ylabel(ylab)
+
     if save_fig:
         plt.savefig(f'{save_fig}/pointID_{pid}.png', dpi=300)
-    
-    return plt.close()#plt.show()#
 
