@@ -45,13 +45,13 @@ def process_point_timeseries(raster_tsi_path, raster_tss_path, points_path, save
     for idx, point in points.iterrows():
         tsi_time_series = []
         for i, step in enumerate(data_tsi.transpose(2, 0, 1)):
-            time = datetime.strptime(dates_tsi[i], '%Y-%m-%d').date()
+            time = datetime.datetime.strptime(dates_tsi[i], '%Y-%m-%d').date()
             values = rasterstats.point_query(point.geometry, step, affine=affine, interpolate='nearest')
             tsi_time_series.append([time, np.nan if values[0] == -9999 else values])
 
         tss_time_series = []
         for i, step in enumerate(data_tss.transpose(2, 0, 1)):
-            time = datetime.strptime(dates_tss[i], '%Y-%m-%d').date()
+            time = datetime.datetime.strptime(dates_tss[i], '%Y-%m-%d').date()
             values = rasterstats.point_query(point.geometry, step, affine=affine, interpolate='nearest')
             tss_time_series.append([time, np.nan if values[0] == -9999 else values])
 

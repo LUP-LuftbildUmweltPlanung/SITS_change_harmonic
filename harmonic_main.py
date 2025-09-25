@@ -91,7 +91,7 @@ def format_time(seconds):
 if __name__ == '__main__':
     # Measure time for force_harmonic
     startzeit_force = time.time()
-    force_harmonic(**params, **advanced_params)
+    #force_harmonic(**params, **advanced_params)
     endzeit_force = time.time()
     force_harmonic_time = endzeit_force - startzeit_force
     print(f"force_harmonic executed in: {format_time(force_harmonic_time)}")
