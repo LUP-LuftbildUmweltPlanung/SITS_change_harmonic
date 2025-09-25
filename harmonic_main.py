@@ -6,6 +6,8 @@ Created on Wed Feb 15 10:55:21 2023
 
 """
 import time
+import cProfile, pstats
+
 from force.force_harmonic_utils import *
 from utils.harmonic_utils import *
 
@@ -15,17 +17,17 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "changes_visualization_datetime", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
-    "aoi": "/rvt_mount/3DTests/data/harm_data/ilmenau.shp", #Define Area of Interest as Shapefile
+    "project_name": "bottleneck_fixed_ilmenau_tile", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
+    "aoi": "/rvt_mount/3DTests/data/harm_data/speed_test_tile_X0064_Y0050.shp", #Define Area of Interest as Shapefile
     "points_path": "/rvt_mount/3DTests/data/harm_data/ilmenau_points.shp",
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
-    "TSS_DATE_RANGE": "2024-06-01 2025-05-31",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI 2018-06-01 2025-07-16
+    "TSS_DATE_RANGE": "2018-06-01 2025-05-31",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI 2018-06-01 2025-07-16
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
     "TSI_Sensors": "SEN2A SEN2B", #"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # "SEN2A SEN2B",Choose between Input Sensors
-    "TSI_DATE_RANGE": "2017-01-01 2018-06-01",# Reference Period for Interpolation Model
+    "TSI_DATE_RANGE": "2016-01-01 2018-06-01",# Reference Period for Interpolation Model
 
     ###########################
     ##HARMONIC Postprocessing##
@@ -42,7 +44,7 @@ params = {
 
     "times_std": 1, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
-    "start_date": "2024-06", # Starting Date for Period Calculation
+    "start_date": "2018-06", # Starting Date for Period Calculation
     "end_date": "2025-05", # End Date for Period Calculation  2025-07
     "period_length": 3, # # Time Range for Period Calculation
     }
@@ -81,6 +83,7 @@ advanced_params = {
     "TSI_BLOCK_SIZE": 1000,
     }
 
+
 def format_time(seconds):
     """Format the time in hours, minutes, and seconds."""
     hours = seconds // 3600
@@ -88,10 +91,15 @@ def format_time(seconds):
     seconds = seconds % 60
     return f"{int(hours)}h {int(minutes)}m {int(seconds)}s"
 
+
 if __name__ == '__main__':
+    #Uncomment the ones below for debugging purposses
+    # profiler = cProfile.Profile()
+    # profiler.enable()
+
     # Measure time for force_harmonic
     startzeit_force = time.time()
-    #force_harmonic(**params, **advanced_params)
+    force_harmonic(**params, **advanced_params)
     endzeit_force = time.time()
     force_harmonic_time = endzeit_force - startzeit_force
     print(f"force_harmonic executed in: {format_time(force_harmonic_time)}")
@@ -107,5 +115,7 @@ if __name__ == '__main__':
     total_time = force_harmonic_time + harmonic_time
     print(f"Total execution time: {format_time(total_time)}")
 
-
-
+    # profiler.disable()
+    # stats = pstats.Stats(profiler).sort_stats("cumtime")
+    # stats.print_stats()
+    # stats.dump_stats("profile_results_fnq.prof")

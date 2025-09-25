@@ -3,6 +3,7 @@ import time
 import numpy as np
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import fastnanquantile as fnq
 import rasterio
 from rasterio.merge import merge
 import glob
@@ -13,7 +14,6 @@ from utils.residuals_utils import get_output_array_full
 from utils.residuals_utils import write_output_raster
 from utils.residuals_utils import slice_by_date
 from utils.residuals_utils import calculate_residuals
-import fastnanquantile as fnq
 
 
 def calculate_firstdate_whole(output_array_full, dates_nrt, forest_mask):
@@ -105,6 +105,7 @@ def calculate_intp10_period (raster_tss, output, start_date, end_date, period_le
         startzeit_force = time.time()
         # force_harmonic(**params, **advanced_params)
 
+
         #######################################################
         sliced_array = np.array(sliced_array)
 
@@ -120,20 +121,22 @@ def calculate_intp10_period (raster_tss, output, start_date, end_date, period_le
 
         # calculate 90 percentil for all pixel with more positive values within period
         if np.any(mask_positive):
-            a_p10[mask_positive] = np.nanquantile(
+            a_p10[mask_positive] = fnq.nanquantile(
                 sliced_array[mask_positive], 0.9, axis=1
             )
 
         # calculate 10 percentil for all pixel with more negative values within period
         mask_negative = ~mask_positive
         if np.any(mask_negative):
-            a_p10[mask_negative] = np.nanquantile(
+            a_p10[mask_negative] = fnq.nanquantile(
                 sliced_array[mask_negative], 0.1, axis=1
             )
 
         # change to integer
         a_p10[np.isnan(a_p10)] = 9999
         a_p10 = a_p10.astype(int)
+
+#########################################################################################################
 
         if mode == "thresholding":
             sliced_filter_2d = np.any(sliced_filter, axis=2)
