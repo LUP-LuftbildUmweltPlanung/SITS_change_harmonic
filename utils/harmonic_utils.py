@@ -168,19 +168,19 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 mosaic_rasters(mosaic_files, output_filename)
             #mosaic_rasters(mosaic_files, output_filename)
 
-    # if points_path:
-    #     print("Starting point time series visualization")
-    #     for raster_tsi, raster_tss in zip(tsi_lst, tss_lst):
-    #         process_point_timeseries(
-    #             raster_tsi_path=raster_tsi,
-    #             raster_tss_path=raster_tss,
-    #             points_path=points_path,
-    #             save_fig= f"{proc_folder}/{project_name}",
-    #             uncertainty="prc",  # or parameterize if needed
-    #             id_column="id",
-    #             title="Pixel analyzsis",
-    #             ylab="Vitalitätsindex DSWI"
-    #         )
+    if points_path:
+        print("Starting point time series visualization")
+        for raster_tsi, raster_tss in zip(tsi_lst, tss_lst):
+            process_point_timeseries(
+                raster_tsi_path=raster_tsi,
+                raster_tss_path=raster_tss,
+                points_path=points_path,
+                save_fig= f"{proc_folder}/{project_name}",
+                uncertainty="prc",  # or parameterize if needed
+                id_column="id",
+                title="Pixel analyzsis",
+                ylab="Vitalitätsindex DSWI"
+            )
 
 
 def mosaic_rasters(input_pattern, output_filename, band_descriptions=None):
