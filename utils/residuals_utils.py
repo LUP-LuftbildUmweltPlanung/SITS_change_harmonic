@@ -207,134 +207,132 @@ def slice_by_date(output_array_full, dates_nrt, start_month, period_length):
 
 
 def plot_timeseries(tsi_time_series, tss_time_series, threshold, uncertainty, points, with_std, save_fig, ylab, title, id_column):
-
     mtplt.rcParams['figure.dpi'] = 300
 
-    # Create a list of dates in tss_time_series
+    # Extract dates and values
     dates = [ts[0] for ts in tss_time_series]
+    tss_vals = np.array([ts[1][0] for ts in tss_time_series])
 
-    # Interpolate the tsi_time_series data to match the dates in tss_time_series
-    interpolated_tsi = np.interp([d.toordinal() for d in dates],
-                                 [d.toordinal() for d in [ts[0] for ts in tsi_time_series]],
-                                 [ts[1][0] for ts in tsi_time_series])
-    tsi_time_series = [[d, [tsi]] for d, tsi in zip(dates, interpolated_tsi)]
+    # Interpolate TSI to TSS dates
+    interpolated_tsi = np.interp(
+        [d.toordinal() for d in dates],
+        [d.toordinal() for d in [ts[0] for ts in tsi_time_series]],
+        [ts[1][0] for ts in tsi_time_series]
+    )
+    tsi_vals = interpolated_tsi.copy()
 
-    plt.figure(figsize=(10, 5))
-
-    start_date = datetime.date(2018, 1, 1)
-    end_date = datetime.date(2024, 12, 31)
-    tsi_time_series = [ts for ts in tsi_time_series if start_date <= ts[0] <= end_date]
-    tss_time_series = [ts for ts in tss_time_series if start_date <= ts[0] <= end_date]
-
-    # Threshold ranges
+    # Define thresholds
     if uncertainty == "prc":
-        time_series_threshold_plus = [[ts[0], ts[1][0] * (1 + threshold / 100)] for ts in tsi_time_series]
-        time_series_threshold_minus = [[ts[0], ts[1][0] * (1 - threshold / 100)] for ts in tsi_time_series]
+        threshold_upper = tsi_vals * (1 + threshold / 100)
+        threshold_lower = tsi_vals * (1 - threshold / 100)
     else:
-        time_series_threshold_plus = [[ts[0], ts[1][0] + threshold] for ts in tsi_time_series]
-        time_series_threshold_minus = [[ts[0], ts[1][0] - threshold] for ts in tsi_time_series]
+        threshold_upper = tsi_vals + threshold
+        threshold_lower = tsi_vals - threshold
 
-    # Plot expected value and thresholds
-    plt.plot([ts[0] for ts in tsi_time_series], [ts[1][0] for ts in tsi_time_series], label="Erwartungswert", color='black', linewidth=1)
+    # Set up anomaly counters
+    anomaly_count_neg = 0
+    anomaly_count_pos = 0
+    reset_count_neg = 0
+    reset_count_pos = 0
 
-    if with_std:
-        plt.plot([ts[0] for ts in time_series_threshold_plus], [ts[1] for ts in time_series_threshold_plus],
-                 color='black', label="Toleranzbereich", linewidth=0.5, linestyle='dashed')
-    else:
-        plt.plot([ts[0] for ts in time_series_threshold_plus], [ts[1] for ts in time_series_threshold_plus],
-                 color='black', label=f"Threshold: {threshold}", linewidth=0.5, linestyle='dashed')
+    anomaly_flags = np.full(len(tss_vals), False)
+    disturbance_flags_pos = np.full(len(tss_vals), False)
+    disturbance_flags_neg = np.full(len(tss_vals), False)
 
-    plt.plot([ts[0] for ts in time_series_threshold_minus], [ts[1] for ts in time_series_threshold_minus],
-             color='black', linewidth=0.5, linestyle='dashed')
-
-    # Predefine the disturbance legend entries for positive and negative disturbances
-    plt.scatter([], [], color='blue', label="Positive Störung", s=8)
-    plt.scatter([], [], color='red', label="Negative Störung", s=8)
-
-    display_anomaly = False
-    display_disturbance = False
-    display_tss = False
-    y_counter = 0
-    n_counter = 0
-
-    for i in range(len(tss_time_series)):
-        if np.isnan(tss_time_series[i][1][0]):
+    # check whether a point is vital, anomaly or part of positive/negative disturbance
+    for i in range(len(tss_vals)):
+        val = tss_vals[i]
+        if np.isnan(val):
             continue
 
-        tss_val = tss_time_series[i][1][0]
-        threshold_upper = time_series_threshold_plus[i][1]
-        threshold_lower = time_series_threshold_minus[i][1]
+        # Check for positive/negative anomaly
+        if val < threshold_lower[i]:
+            if anomaly_count_neg < 3:
+                anomaly_count_neg += 1
+            anomaly_count_pos = 0  # reset other
 
-        if tss_val < threshold_lower or tss_val > threshold_upper:
-            # This value is outside the threshold, consider it an anomaly or disturbance
-            y_counter += 1
+            if anomaly_count_neg == 3:
+                # Mark current and 2 previous values
+                for j in range(i - 2, i + 1):
+                    if 0 <= j < len(tss_vals):
+                        anomaly_flags[j] = True
+                        disturbance_flags_neg[j] = True
+            elif anomaly_count_neg > 3:
+                anomaly_flags[i] = True
+                disturbance_flags_neg[i] = True
 
-            if not display_anomaly:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange', label="Anomalie", s=8)
-                display_anomaly = True
-            else:
-                if y_counter >= 3:
-                    # Determine color for disturbance
-                    disturbance_color = 'blue' if tss_val > threshold_upper else 'red'
-                    if not display_disturbance:
-                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color=disturbance_color, s=8)#label="Störung",
-                        display_disturbance = True
-                    else:
-                        plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color=disturbance_color, s=8)
+            reset_count_neg = 0
+        elif val > threshold_upper[i]:
+            if anomaly_count_pos < 3:
+                anomaly_count_pos += 1
+            anomaly_count_neg = 0  # reset other
 
-                    # Backward propagation of disturbance
-                    for count in range(8):
-                        c = count + 1
-                        if i - c < 0 or np.isnan(tss_time_series[i - c][1][0]):
-                            continue
-                        past_val = tss_time_series[i - c][1][0]
-                        if past_val < time_series_threshold_minus[i - c][1] or past_val > time_series_threshold_plus[i - c][1]:
-                            back_color = 'blue' if past_val > time_series_threshold_plus[i - c][1] else "red"######red
-                            plt.scatter(tss_time_series[i - c][0], tss_time_series[i - c][1], color=back_color, s=8)
-                        if count == 3:
-                            break
-                else:
-                    plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='orange', s=8)
+            if anomaly_count_pos == 3:
+                for j in range(i - 2, i + 1):
+                    if 0 <= j < len(tss_vals):
+                        anomaly_flags[j] = True
+                        disturbance_flags_pos[j] = True
+            elif anomaly_count_pos > 3:
+                anomaly_flags[i] = True
+                disturbance_flags_pos[i] = True
 
-            if n_counter < 3:
-                n_counter = 0
+            reset_count_pos = 0
         else:
-            # This value is within the threshold range, consider it a "Vitalwert"
-            if not display_tss:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', label="Vitalwert", s=8)
-                display_tss = True
+            # Normal values
+            if anomaly_count_neg < 3 and not np.isnan(val):
+                anomaly_count_neg = 0
+                reset_count_neg += 1
+                if reset_count_neg >= 3:
+                    anomaly_count_neg = 0
+                    reset_count_neg = 0
+
+            if anomaly_count_pos < 3 and not np.isnan(val):
+                anomaly_count_pos = 0
+                reset_count_pos += 1
+                if reset_count_pos >= 3:
+                    anomaly_count_pos = 0
+                    reset_count_pos = 0
+
+    # --- Plotting ---
+    plt.figure(figsize=(10, 5))
+    plt.plot(dates, tsi_vals, label="Erwartungswert", color='black', linewidth=1)
+
+    if with_std:
+        plt.plot(dates, threshold_upper, color='black', label="Toleranzbereich", linewidth=0.5, linestyle='dashed')
+    else:
+        plt.plot(dates, threshold_upper, color='black', label=f"Threshold: {threshold}", linewidth=0.5, linestyle='dashed')
+
+    plt.plot(dates, threshold_lower, color='black', linewidth=0.5, linestyle='dashed')
+
+    # Create legend
+    plt.scatter([], [], color='orange', label="Anomalie", s=8)
+    plt.scatter([], [], color='blue', label="Positive Störung", s=8)
+    plt.scatter([], [], color='red', label="Negative Störung", s=8)
+    plt.scatter([], [], color='green', label="Vitalwert", s=8)
+
+    # colorisation of points depending on their status (vital, anomaly, positive/negative disturbance)
+    for i in range(len(tss_vals)):
+        val = tss_vals[i]
+        if np.isnan(val):
+            continue
+        date = dates[i]
+
+        if val > threshold_upper[i] or val < threshold_lower[i]:
+            if disturbance_flags_pos[i] and val > threshold_upper[i]:
+                plt.scatter(date, val, color='blue', s=8)
+            elif disturbance_flags_neg[i] and val < threshold_lower[i]:
+                plt.scatter(date, val, color='red', s=8)
             else:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', s=8)
-
-            n_counter += 1
-            if y_counter < 3:
-                y_counter = 0
-
-            if n_counter == 3:
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color='green', s=8)
-                for count in range(8):
-                    c = count + 1
-                    if i - c < 0 or np.isnan(tss_time_series[i - c][1][0]):
-                        continue
-                    if tss_time_series[i - c][1][0] > time_series_threshold_minus[i - c][1]:
-                        plt.scatter(tss_time_series[i - c][0], tss_time_series[i - c][1], color='green', s=8)
-                    if count == 3:
-                        break
-                n_counter = 0
-                y_counter = 0
-
-            if y_counter >= 3:
-                # Ensure the color remains blue or red based on the threshold
-                color_final = 'red' if tss_val < threshold_lower else 'green'#########blue - red
-                plt.scatter(tss_time_series[i][0], tss_time_series[i][1], color=color_final, s=8)
+                plt.scatter(date, val, color='orange', s=8)
+        else:
+            plt.scatter(date, val, color='green', s=8)
 
     pid = str(getattr(points, id_column))
     plt.title(title + str(pid))
-    plt.legend(loc=3, prop={'size': 7})
+    plt.legend(loc='best', prop={'size': 7})
     plt.xlabel("Jahr")
     plt.xticks(fontsize=6)
     plt.ylabel(ylab)
 
     if save_fig:
         plt.savefig(f'{save_fig}/pointID_{pid}.png', dpi=300)
-
