@@ -179,7 +179,7 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
                 save_fig=f"{proc_folder}/{project_name}",
                 uncertainty="prc",  # or parameterize if needed
                 id_column="id",
-                title="Pixel analyzsis",
+                title="Pixel Analysis",
                 ylab="Vitalitätsindex DSWI"
             )
 
