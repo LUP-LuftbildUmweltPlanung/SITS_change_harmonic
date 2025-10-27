@@ -167,14 +167,17 @@ def get_output_array_full(nrt_raster_data, threshold):
     return output_array_full, filtered
 
 
-def write_output_raster(nrt_raster,output, array, suffix, nbands):
+def write_output_raster(nrt_raster,output, array, suffix, nbands, dtype='int16'):
     nrt_raster = rasterio.open(nrt_raster)
+
     kwargs = nrt_raster.meta
     kwargs.update(
-        dtype='int32',
+        dtype=dtype,
         count=nbands,
         compress='lzw',
-        nodata= 9999)
+        nodata=-32768
+    )
+
 
     if nbands == 1:
         with rasterio.open(output + suffix, 'w', **kwargs) as dst:

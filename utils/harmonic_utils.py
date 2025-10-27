@@ -88,7 +88,7 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         raster_tss_data, dates_nrt, sens, _, __ = extract_data(raster_tss, with_std = False)
         raster_tsi_data, dates_tsi, sens, data_std, model = extract_data(raster_tsi, with_std = True)
 
-        model[np.isnan(model)] = 9999
+        model[np.isnan(model)] = -32768
         write_output_raster(raster_tss, output, model, f"/model.tif", 1)
         model = None
 
@@ -109,34 +109,36 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
             output_array_full, filtered = get_output_array_full(nrt_raster_data, threshold)
             if firstdate_whole == True:
                 output_array = calculate_firstdate_whole(output_array_full, dates_nrt, forest_mask)
-                write_output_raster(raster_tss, output, output_array, f"/first_date_threshold.tif", 1)
+                write_output_raster(raster_tss, output, output_array, f"/first_date_threshold.tif", 1, "int32")
             if int10p_whole == True:
                 a_p10 = calculate_int10p_whole(output_array_full, forest_mask)
                 write_output_raster(raster_tss, output, a_p10, f"/intensity_threshold.tif", 1)
                 print("###" * 10)
                 print(f'finished intensity for whole time period (residual related)\n')
             if intp10_period == True:
-                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, "thresholding")
+                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, forest_mask, filtered, "thresholding")
 
         if "raw" in deviation:
             output_array_full = nrt_raster_data
             if firstdate_whole == True:
                 output_array = calculate_firstdate_whole(output_array_full, dates_nrt, forest_mask)
-                write_output_raster(raster_tss, output, output_array, f"/first_date_raw.tif", 1)
+                write_output_raster(raster_tss, output, output_array, f"/first_date_raw.tif", 1, "int32")
             if int10p_whole == True:
                 a_p10 = calculate_int10p_whole(output_array_full, forest_mask)
                 write_output_raster(raster_tss, output, a_p10, f"/intensity_raw.tif", 1)
                 print("###" * 10)
                 print(f'finished intensity for whole time period (residual related)\n')
             if intp10_period == True:
-                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, "raw")
+                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, forest_mask, mode="raw")
 
         if "safe" in deviation:
             output_array_raw = nrt_raster_data
             forest_mask_extended = forest_mask[:, :, np.newaxis]
             missing_values = np.logical_and(np.isnan(output_array_raw), ~forest_mask_extended)
             output_array_raw[missing_values] = 5000
-            output_array_raw[np.isnan(output_array_raw)] = 9999
+            output_array_raw[np.isnan(output_array_raw)] = -32768
+            # clip to data range of int16
+            output_array_raw = np.clip(output_array_raw, -32768, 32767)
             write_output_raster(raster_tss, output, output_array_raw, f"/residuals.tif", rasterio.open(raster_tss).count)
         if deviation == ["safe"]:
             continue

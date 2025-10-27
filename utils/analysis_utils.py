@@ -32,8 +32,8 @@ def calculate_firstdate_whole(output_array_full, dates_nrt, forest_mask):
             if not np.isnan(output_array_full[x, y, index]):
                 output_array[x, y] = int(dates_nrt[index].replace('-', '')[2:])
 
-    output_array[np.isnan(output_array)] = 9999
-    missing_values = np.logical_and(output_array == 9999, ~forest_mask)
+    output_array[np.isnan(output_array)] = -32768
+    missing_values = np.logical_and(output_array == -32768, ~forest_mask)
     output_array[missing_values] = 5000
     output_array = output_array.astype(int)
 
@@ -44,12 +44,39 @@ def calculate_int10p_whole(output_array_full, forest_mask):
     ############## Intensity and Count
     print("###" * 10)
     print(f'calculate intensity and count for whole time period (residual related)\n')
-    a_p10 = np.nanpercentile(output_array_full, 10, axis=2)
+    # count number of positive and negative values in array
+    positive_values = np.sum((output_array_full > 0), axis=2)
+    negative_values = np.sum(output_array_full <= 0, axis=2)
+
+    # create mask: if True = more positive than negative values; if false more negative than positive values
+    mask_positive = positive_values > negative_values
+
+    # initialise output array
+    a_p10 = np.empty(output_array_full.shape[:2])  # Vorbelegen mit 9999
+
+    # calculate 90 percentil for all pixel with more positive values within period
+    if np.any(mask_positive):
+        a_p10[mask_positive] = fnq.nanquantile(
+            output_array_full[mask_positive], 0.9, axis=1
+        )
+
+    # calculate 10 percentil for all pixel with more negative values within period
+    mask_negative = ~mask_positive
+    if np.any(mask_negative):
+        a_p10[mask_negative] = fnq.nanquantile(
+            output_array_full[mask_negative], 0.1, axis=1
+        )
+    #a_p10 = np.nanpercentile(output_array_full, 10, axis=2)
     # Fill NaN values
-    a_p10[np.isnan(a_p10)] = 9999
-    missing_values = np.logical_and(a_p10 == 9999, ~forest_mask)
+    a_p10[np.isnan(a_p10)] = -32768
+    missing_values = np.logical_and(a_p10 == -32768, ~forest_mask)
     a_p10[missing_values] = 5000
-    a_p10 = a_p10.astype(int)
+
+    mask_5000_9999 = np.isin(a_p10, [5000, -32768])
+    a_p10_clipped = np.clip(a_p10, -4000, 4000)
+    a_p10_clipped[mask_5000_9999] = a_p10[mask_5000_9999]
+    a_p10 = a_p10_clipped.astype(np.int16)
+    #a_p10 = a_p10.astype(int32)
 
 
     ## uncomment if you want to have information about amount of valid values
@@ -63,7 +90,7 @@ def calculate_int10p_whole(output_array_full, forest_mask):
     return a_p10
 
 
-def calculate_intp10_period (raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, filtered, forest_mask, mode=None):
+def calculate_intp10_period (raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, forest_mask, filtered=None, mode=None):
     ###############################################################
     ################ ITERATE OVER TIME PERIODS ####################
     ###############################################################
@@ -133,21 +160,26 @@ def calculate_intp10_period (raster_tss, output, start_date, end_date, period_le
             )
 
         # change to integer
-        a_p10[np.isnan(a_p10)] = 9999
+        a_p10[np.isnan(a_p10)] = -32768
         a_p10 = a_p10.astype(int)
 
 #########################################################################################################
 
         if mode == "thresholding":
             sliced_filter_2d = np.any(sliced_filter, axis=2)
-            sliced_filter_2d_nan = np.logical_and(a_p10 == 9999, sliced_filter_2d)
+            sliced_filter_2d_nan = np.logical_and(a_p10 == -32768, sliced_filter_2d)
             # print(sum(sliced_filter_2d))
             a_p10[
-                sliced_filter_2d_nan] = 9999  # Should be set to e.g. 0 if you want to seperate areas outside mask and no disturbance
+                sliced_filter_2d_nan] = -32768  # Should be set to e.g. 0 if you want to seperate areas outside mask and no disturbance
 
-        missing_values = np.logical_and(a_p10 == 9999, ~forest_mask)
+        missing_values = np.logical_and(a_p10 == -32768, ~forest_mask)
         a_p10[missing_values] = 5000
-        a_p10 = a_p10.astype(np.int32)
+
+        mask_5000_9999 = np.isin(a_p10, [5000, -32768])
+        a_p10_clipped = np.clip(a_p10, -4000, 4000)
+        a_p10_clipped[mask_5000_9999] = a_p10[mask_5000_9999]
+        a_p10 = a_p10_clipped.astype(np.int16)
+        #a_p10 = a_p10.astype(np.int32)
 
         write_output_raster(raster_tss, output, a_p10,
                             f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10_{mode}.tif", 1)
