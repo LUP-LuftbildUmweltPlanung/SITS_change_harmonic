@@ -181,5 +181,14 @@ def calculate_intp10_period (raster_tss, output, start_date, end_date, period_le
         a_p10 = a_p10_clipped.astype(np.int16)
         #a_p10 = a_p10.astype(np.int32)
 
-        write_output_raster(raster_tss, output, a_p10,
-                            f"/{sm_split[0]}_{sm_split[1]}_{em_split[0]}_{em_split[1]}_INTp10_{mode}.tif", 1)
+        # convert month strings to number
+        month_map = {
+            "january": "01", "february": "02", "march": "03", "april": "04", "may": "05", "june": "06",
+            "july": "07", "august": "08","september": "09", "october": "10", "november": "11", "december": "12"
+        }
+        sm_month = month_map[sm_split[0].lower()]
+        em_month = month_map[em_split[0].lower()]
+
+        suffix = f"/vit_{sm_split[1]}{sm_month}_{em_split[1]}{em_month}_{mode}_v3.tif"
+
+        write_output_raster(raster_tss, output, a_p10, suffix, 1)
