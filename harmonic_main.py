@@ -25,7 +25,7 @@ params = {
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
     "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
-    "TSS_DATE_RANGE": "2025-03-01 2025-11-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI 2018-06-01 2025-07-16
+    "TSS_DATE_RANGE": "2025-03-01 2025-11-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
     "TSI_Sensors": "SEN2A SEN2B", #"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # "SEN2A SEN2B",Choose between Input Sensors
@@ -75,13 +75,13 @@ advanced_params = {
     "hold": False,  # if True, cmd must be closed manually ## recommended for debugging FORCE
 
     #Streaming Mechanism
-    "TSS_NTHREAD_READ": 10,  # 4,
-    "TSS_NTHREAD_COMPUTE": 12,  # 11,
-    "TSS_NTHREAD_WRITE": 6,  # 2,
+    "TSS_NTHREAD_READ": 10,
+    "TSS_NTHREAD_COMPUTE": 12,
+    "TSS_NTHREAD_WRITE": 6,
     "TSS_BLOCK_SIZE": 1000,
-    "TSI_NTHREAD_READ": 10,  # 4,
-    "TSI_NTHREAD_COMPUTE": 12,  # 11,
-    "TSI_NTHREAD_WRITE": 6,  # 2,
+    "TSI_NTHREAD_READ": 10,
+    "TSI_NTHREAD_COMPUTE": 12,
+    "TSI_NTHREAD_WRITE": 6,
     "TSI_BLOCK_SIZE": 1000,
     }
 
