@@ -19,17 +19,17 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "test", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
-    "aoi": "/drive_mount/data_germany/aoi.shp", #Define Area of Interest as Shapefile
+    "project_name": "test_sen_lnd", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
+    "aoi": "/drive_mount/data_germany/mini_aoi_pos.shp", #Define Area of Interest as Shapefile
     "points_path": None,
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
-    "TSS_Sensors": "SEN2A SEN2B", #LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B, # Choose between Input Sensors
-    "TSS_DATE_RANGE": "2025-03-01 2025-11-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
+    "TSS_Sensors": "SEN2A SEN2B LND04 LND05 LND07 LND08 LND09", # SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 Choose between Input Sensors
+    "TSS_DATE_RANGE": "2025-03-01 2025-05-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
-    "TSI_Sensors": "SEN2A SEN2B", #"LND04 LND05 LND07 LND08 LND09 SEN2A SEN2B", # "SEN2A SEN2B",Choose between Input Sensors
-    "TSI_DATE_RANGE": "2016-01-01 2018-06-01",# Reference Period for Interpolation Model
+    "TSI_Sensors": "SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 ", # SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 Choose between Input Sensors
+    "TSI_DATE_RANGE": "2018-01-01 2018-12-31",# Reference Period for Interpolation Model
 
     ###########################
     ##HARMONIC Postprocessing##
@@ -47,7 +47,7 @@ params = {
     "times_std": 1, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
     "start_date": "2025-03", # Starting Date for Period Calculation
-    "end_date": "2025-11", # End Date for Period Calculation
+    "end_date": "2025-05", # End Date for Period Calculation
     "period_length": 3, # # Time Range for Period Calculation
     }
 
@@ -63,14 +63,12 @@ advanced_params = {
     # To disable filter set TS*_ABOVE_NOISE and! TS*_BELOW_NOISE to 0; it's recommended to TSS_ABOVE_NOISE and TSS_BELOW_NOISE to 0 to include all values and get comparable results
     "TSS_ABOVE_NOISE": 0, # noise filtering in spectral values above 3 x std; take care for not filtering real changes
     "TSS_BELOW_NOISE": 0, # get back values from qai masking below single std
-    "TSS_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
     "Model": "notrend",  # you can choose between a model including or exluding trend ["notrend","trend"]
     # there are three different complexities for the harmonic model, that will be chosen by the amount of valid spectral values within the reference period --> have a look at UDF - Function
 
     "TSI_ABOVE_NOISE": 3, #noise filtering in spectral values above 3 x std
     "TSI_BELOW_NOISE": 1, #get back values from qai masking below single std
-    "TSI_SPECTRAL_ADJUST": "FALSE", #spectral adjustment will be necessary by using Sentinel 2 & Landsat together
 
     "hold": False,  # if True, cmd must be closed manually ## recommended for debugging FORCE
 
@@ -78,11 +76,11 @@ advanced_params = {
     "TSS_NTHREAD_READ": 10,
     "TSS_NTHREAD_COMPUTE": 12,
     "TSS_NTHREAD_WRITE": 6,
-    "TSS_BLOCK_SIZE": 1000,
+    "TSS_BLOCK_SIZE": 300, # must be divisible by the resolution (Landsat = 30 m, Sentinel = 10 m)
     "TSI_NTHREAD_READ": 10,
     "TSI_NTHREAD_COMPUTE": 12,
     "TSI_NTHREAD_WRITE": 6,
-    "TSI_BLOCK_SIZE": 1000,
+    "TSI_BLOCK_SIZE": 300, # must be divisible by the resolution (Landsat = 30 m, Sentinel = 10 m)
     }
 
 

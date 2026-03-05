@@ -44,7 +44,9 @@ def check_and_reproject_shapefile(shapefile_path, target_epsg=3035):
     else:
         print("Shapefile is already in EPSG: 3035")
         return shapefile_path
-def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Model,prc_change,process_folder,force_dir,TSS_SPECTRAL_ADJUST,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_SPECTRAL_ADJUST,TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,TSS_NTHREAD_READ,TSS_NTHREAD_COMPUTE,
+
+
+def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_DATE_RANGE,Model,prc_change,process_folder,force_dir,TSS_ABOVE_NOISE,TSS_BELOW_NOISE,TSI_ABOVE_NOISE,TSI_BELOW_NOISE,hold,TSS_NTHREAD_READ,TSS_NTHREAD_COMPUTE,
                    TSS_NTHREAD_WRITE,TSS_BLOCK_SIZE,TSI_NTHREAD_READ,TSI_NTHREAD_COMPUTE,TSI_NTHREAD_WRITE,TSI_BLOCK_SIZE,**kwargs):
 
     force_dir = f"{force_dir}:{force_dir}"
@@ -113,6 +115,22 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
     shutil.copy(f"{scripts_skel}/dswi_harmonic_tss.py",f"{temp_folder}/{project_name}/dswi_harmonic_tss.py")
 
     X_TILE_RANGE, Y_TILE_RANGE = extract_coordinates(f"{temp_folder}/{project_name}/tile_extent.txt")
+
+    # adjust parameters based on sensors
+    sensors_combined = f"{TSS_Sensors} {TSI_Sensors}".upper()
+    if "SEN" in sensors_combined and "LND" not in sensors_combined:
+        resolution = 10
+    else:
+        resolution = 30
+    if "SEN" in TSI_Sensors and "LND" in TSI_Sensors:
+        tsi_spectral_adjust = "TRUE"
+    else:
+        tsi_spectral_adjust = "FALSE"
+    if "SEN" in TSS_Sensors and "LND" in TSS_Sensors:
+        tss_spectral_adjust = "TRUE"
+    else:
+        tss_spectral_adjust = "FALSE"
+
     # Define replacements
     replacements = {
         # INPUT/OUTPUT DIRECTORIES
@@ -130,9 +148,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         f'X_TILE_RANGE = 0 0':f'X_TILE_RANGE = {X_TILE_RANGE}',
         f'Y_TILE_RANGE = 0 0':f'Y_TILE_RANGE = {Y_TILE_RANGE}',
         f'BLOCK_SIZE = 0':f'BLOCK_SIZE = {TSS_BLOCK_SIZE}',
+        f'RESOLUTION = 10': f'RESOLUTION = {resolution}',
         # SENSOR ALLOW-LIST
         f'SENSORS = LND08 LND09 SEN2A SEN2B':f'SENSORS = {TSS_Sensors}',
-        f'SPECTRAL_ADJUST = FALSE':f'SPECTRAL_ADJUST = {TSS_SPECTRAL_ADJUST}',
+        f'SPECTRAL_ADJUST = FALSE':f'SPECTRAL_ADJUST = {tss_spectral_adjust}',
         # QAI SCREENING
         f'SCREEN_QAI = NODATA CLOUD_OPAQUE CLOUD_BUFFER CLOUD_CIRRUS CLOUD_SHADOW SNOW SUBZERO SATURATION':f'SCREEN_QAI = NODATA CLOUD_OPAQUE CLOUD_BUFFER CLOUD_CIRRUS CLOUD_SHADOW SNOW SUBZERO SATURATION',
         f'ABOVE_NOISE = 3':f'ABOVE_NOISE = {TSS_ABOVE_NOISE}',
@@ -226,9 +245,10 @@ def force_harmonic(project_name,aoi,TSS_Sensors,TSS_DATE_RANGE,TSI_Sensors,TSI_D
         f'X_TILE_RANGE = 0 0': f'X_TILE_RANGE = {TSI_X_TILE_RANGE}',
         f'Y_TILE_RANGE = 0 0': f'Y_TILE_RANGE = {TSI_Y_TILE_RANGE}',
         f'BLOCK_SIZE = 0': f'BLOCK_SIZE = {TSI_BLOCK_SIZE}',
+        f'RESOLUTION = 10': f'RESOLUTION = {resolution}',
         # SENSOR ALLOW-LIST
         f'SENSORS = LND08 LND09 SEN2A SEN2B': f'SENSORS = {TSI_Sensors}',
-        f'SPECTRAL_ADJUST = FALSE': f'SPECTRAL_ADJUST = {TSI_SPECTRAL_ADJUST}',
+        f'SPECTRAL_ADJUST = FALSE': f'SPECTRAL_ADJUST = {tsi_spectral_adjust}',
         # QAI SCREENING
         f'SCREEN_QAI = NODATA CLOUD_OPAQUE CLOUD_BUFFER CLOUD_CIRRUS CLOUD_SHADOW SNOW SUBZERO SATURATION': f'SCREEN_QAI = NODATA CLOUD_OPAQUE CLOUD_BUFFER CLOUD_CIRRUS CLOUD_SHADOW SNOW SUBZERO SATURATION',
         f'ABOVE_NOISE = 3': f'ABOVE_NOISE = {TSI_ABOVE_NOISE}',

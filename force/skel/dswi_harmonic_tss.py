@@ -43,17 +43,19 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     #inarray = inarray[:, :, 0, 0]
     #inarray[inarray != nodata] = 0
     #print(inarray[valid])
+    sensor_list = np.unique(sensors)
     # band indices
-    #print(start+timedelta(days=int(dates[0])))
-    #print(dates[0])
-    #time.sleep(1000)
     green = np.argwhere(bandnames == b'GREEN')[0][0]
     #blue = np.argwhere(bandnames == b'BLUE')[0][0]
     red = np.argwhere(bandnames == b'RED')[0][0]
     #re1 = np.argwhere(bandnames == b'REDEDGE1')[0][0]
     #re2 = np.argwhere(bandnames == b'REDEDGE2')[0][0]
+    if any(b"LND" in s for s in sensor_list):
+        nir = np.argwhere(bandnames == b'NIR')[0][0]
+    else:
+        nir = np.argwhere(bandnames == b'BROADNIR')[0][0]
     #nir = np.argwhere(bandnames == b'NIR')[0][0]
-    bnir = np.argwhere(bandnames == b'BROADNIR')[0][0]
+    #bnir = np.argwhere(bandnames == b'BROADNIR')[0][0]
     swir1 = np.argwhere(bandnames == b'SWIR1')[0][0]
     #swir2 = np.argwhere(bandnames == b'SWIR2')[0][0]
 
@@ -73,7 +75,8 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     # # RENDVI2 = (RE2 - RED) / (RE2 + RED)
     # rendvi2 = (vals[:, re2] - vals[:, red]) / (vals[:, re2] + vals[:, red])
     # # DSWI = (BNIR + GREEN) / (SWIR1 + RED)
-    dswi = (vals[:, bnir] + vals[:, green]) / (vals[:, swir1] + vals[:, red])
+    #dswi = (vals[:, bnir] + vals[:, green]) / (vals[:, swir1] + vals[:, red])
+    dswi = (vals[:, nir] + vals[:, green]) / (vals[:, swir1] + vals[:, red])
     # # MSI = SWIR1 / BNIR
     # msi = vals[:, swir1] / vals[:, bnir]
     # # NDWI = (BNIR - SWIR1) / (BNIR + SWIR1)
