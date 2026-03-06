@@ -11,7 +11,7 @@ DIR_PROVENANCE = NULL
 DIR_MASK = NULL
 BASE_MASK = NULL
 
-# OUTPUT OPTIONS
+# OUTPUT OPTIONSBROAD
 # ------------------------------------------------------------------------
 OUTPUT_FORMAT = GTiff
 FILE_OUTPUT_OPTIONS = NULL
