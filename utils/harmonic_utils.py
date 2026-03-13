@@ -63,7 +63,7 @@ def process_point_timeseries(raster_tsi_path, raster_tss_path, points_path, save
                         with_std, save_fig, ylab, title, id_column)
 
 
-def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdate_whole,intp10_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst,points_path, **kwargs):
+def harmonic(project_name,prc_change,deviation,metrics, trend_whole, firstdate_whole, vit_whole,vit_period,mosaic,times_std,start_date,end_date,period_length,process_folder,tsi_lst,tss_lst,points_path, **kwargs):
 
     temp_folder = process_folder + "/temp"
     proc_folder = process_folder + "/results"
@@ -104,32 +104,39 @@ def harmonic(project_name,prc_change,deviation,trend_whole,int10p_whole,firstdat
         threshold = abs(data_std * times_std)
         # get forest mask lately ... assumption that all values in z dimension are nan
         forest_mask = np.isnan(nrt_raster_data).all(axis=2)
+        start_str = start_date.replace('-', '')
+        end_str = end_date.replace('-', '')
 
         if "thresholding" in deviation:
             output_array_full, filtered = get_output_array_full(nrt_raster_data, threshold)
+            # filtered = np.array(filtered)
             if firstdate_whole == True:
                 output_array = calculate_firstdate_whole(output_array_full, dates_nrt, forest_mask)
                 write_output_raster(raster_tss, output, output_array, f"/first_date_threshold.tif", 1, "int32")
-            if int10p_whole == True:
-                a_p10 = calculate_int10p_whole(output_array_full, forest_mask)
-                write_output_raster(raster_tss, output, a_p10, f"/intensity_threshold.tif", 1)
+            if vit_whole == True:
+                results = calculate_vit_whole(output_array_full, forest_mask, metrics)
+                for metric, a in results.items():
+                    write_output_raster(raster_tss, output, a, f"/vit_{start_str}_{end_str}_threshold_{metric}_v3.tif", 1)
                 print("###" * 10)
-                print(f'finished intensity for whole time period (residual related)\n')
-            if intp10_period == True:
-                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, forest_mask, filtered, "thresholding")
+                print(f'finished calculating vitality for whole time period (residual related)\n')
+            if vit_period == True:
+                calculate_vit_period(raster_tss, output, start_date, end_date, period_length, dates_nrt,
+                                     output_array_full, forest_mask, metrics, filtered, mode="thresholding")
 
         if "raw" in deviation:
             output_array_full = nrt_raster_data
             if firstdate_whole == True:
                 output_array = calculate_firstdate_whole(output_array_full, dates_nrt, forest_mask)
                 write_output_raster(raster_tss, output, output_array, f"/first_date_raw.tif", 1, "int32")
-            if int10p_whole == True:
-                a_p10 = calculate_int10p_whole(output_array_full, forest_mask)
-                write_output_raster(raster_tss, output, a_p10, f"/intensity_raw.tif", 1)
+            if vit_whole == True:
+                results = calculate_vit_whole(output_array_full, forest_mask, metrics)
+                for metric, a in results.items():
+                    write_output_raster(raster_tss, output, a, f"/vit_{start_str}_{end_str}_raw_{metric}_v3.tif", 1)
                 print("###" * 10)
-                print(f'finished intensity for whole time period (residual related)\n')
-            if intp10_period == True:
-                calculate_intp10_period(raster_tss, output, start_date, end_date, period_length, dates_nrt, output_array_full, forest_mask, mode="raw")
+                print(f'finished calculating vitality for whole time period (residual related)\n')
+            if vit_period == True:
+                calculate_vit_period(raster_tss, output, start_date, end_date, period_length, dates_nrt,
+                                     output_array_full, forest_mask, metrics, mode="raw")
 
         if "safe" in deviation:
             output_array_raw = nrt_raster_data

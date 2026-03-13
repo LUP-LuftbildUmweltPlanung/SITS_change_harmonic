@@ -19,17 +19,17 @@ params = {
     #########################
     #########Basics##########
     #########################
-    "project_name": "test_sen_lnd", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
-    "aoi": "/drive_mount/data_germany/mini_aoi_pos.shp", #Define Area of Interest as Shapefile
+    "project_name": "validierung_sachsen_2021", #Project Name that will be the name of output folder in temp & result subfolder test_full_tile_all_time
+    "aoi": "/drive_mount/harmonic_data/landesgrenze_sachsen_25833_3035.shp", #Define Area of Interest as Shapefile
     "points_path": None,
 
     #TimeSeriesStack (TSS) --> Real Spectral Values
-    "TSS_Sensors": "SEN2A SEN2B LND04 LND05 LND07 LND08 LND09", # SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 Choose between Input Sensors
-    "TSS_DATE_RANGE": "2025-03-01 2025-05-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
+    "TSS_Sensors": "SEN2A SEN2B", # SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 Choose between Input Sensors
+    "TSS_DATE_RANGE": "2021-03-01 2021-11-30",# TimeRange for ChangeDetection. Will also be Prediction Time Range for TSI
 
     #TimeSeriesInterpolation (TSI) --> Interpolated Spectral Values
-    "TSI_Sensors": "SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 ", # SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 Choose between Input Sensors
-    "TSI_DATE_RANGE": "2018-01-01 2018-12-31",# Reference Period for Interpolation Model
+    "TSI_Sensors": "SEN2A SEN2B", # SEN2A SEN2B LND04 LND05 LND07 LND08 LND09 Choose between Input Sensors
+    "TSI_DATE_RANGE": "2016-01-01 2018-06-30",# Reference Period for Interpolation Model
 
     ###########################
     ##HARMONIC Postprocessing##
@@ -38,22 +38,23 @@ params = {
     # False --> residual change [threshold --> std of harmonic reference period]
     # True --> relative change in percent [threshold --> coefficient of variation - (std / mean ) * 100]
     "deviation": ["thresholding", "raw"], # "safe", "thresholding", "raw" ## "thresholding": anomaly cleaning (3 times lower/higher threshold) will be applied; "safe": residuals will be safed and further processes skipped; "raw": raw residuals will be used for further processes; it's possible to input multiple options
+    "metrics": ["p10_p90", "median", "mean"], # available metrics: "p10_p90", "median, mean"
     "trend_whole": False,
-    "int10p_whole": False, # Calculate the 10th percentile (negative deviations for negative Change in Spectral Value) and 90th percentile (positive deviations for positive Change in Spectral Value) for whole TSS date range
     "firstdate_whole": False, # Calculate the first Date the Change was detected
-    "intp10_period": True, # Calculate the 10th and 90th percentile for periods specified below
+    "vit_whole": True, # Calculate the 10th percentile (negative deviations for negative Change in Spectral Value) and 90th percentile (positive deviations for positive Change in Spectral Value) for whole TSS date range
+    "vit_period": True, # Calculate the 10th and 90th percentile for periods specified below
     "mosaic": True, # Mosaic the final results?
 
     "times_std": 1, # Threshold for ChangeDetection (std * -x | cv * -x)
     # Define start and end dates and period length
-    "start_date": "2025-03", # Starting Date for Period Calculation
-    "end_date": "2025-05", # End Date for Period Calculation
+    "start_date": "2021-03", # Starting Date for Period Calculation
+    "end_date": "2021-11", # End Date for Period Calculation
     "period_length": 3, # # Time Range for Period Calculation
     }
 
 advanced_params = {
     #BASIC
-    "process_folder": "/drive_mount/harmonic_germany", # Folder where Data and Results will be processed (will be created if not existing)
+    "process_folder": "/drive_mount", # Folder where Data and Results will be processed (will be created if not existing)
     "force_dir": "/force", # mount directory for FORCE-Datacube - should look like /force_mount/FORCE/C1/L2/..
     #"tsi_lst" : glob(".../tiles_tsi/X*/2017-2019_001-365_HL_UDF_SEN2L_PYP.tif"),
     #"tss_lst" : glob(".../tiles_tss/X*/2018-2023_001-365_HL_UDF_SEN2L_PYP.tif"),
