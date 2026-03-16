@@ -37,9 +37,17 @@ Results can be plots for points:
 
 And results can be grid based where every pixel has e.g.:
 - the first date where the disturbance occurred
-- 90th percentile for disturbance residuals over the entire time period
-- 90th percentile for disturbance residuals within specified time ranges
+- metric value for disturbance residuals over the entire time period and/or within specified periods
 
+Metrics can be computed for: 
+- raw residuals: Every residual within the specified time period.
+- threshold: Residuals are filtered using a threshold. Only residuals that exceed or fall below the threshold three consecutive times are used for metric computation.
+
+Metrics that can be computed:
+- p10_p90: If positive residuals are more frequent, the 90th percentile is computed. If negative residuals dominate, the 10th percentile is used.
+- median: Median over all residuals within time period is computed.
+- mean: The cumulative sums of positive and negative residuals are compared. The mean is then calculated for the residuals with the larger cumulative sum.
+  
 Output Values:  
 9999: areas with no disturbance & areas outside of AOI  
 5000: no valid data available within time range
