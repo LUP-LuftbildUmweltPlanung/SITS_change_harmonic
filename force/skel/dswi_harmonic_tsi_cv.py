@@ -134,54 +134,69 @@ def forcepy_pixel(inarray, outarray, dates, sensors, bandnames, nodata, nproc):
     # fit
     xtest = np.array(range(start_date_pred_iso, end_date_pred_iso, step))
 
-    try:
-        if len(xtrain) > 19:
-            if objective == 'notrend':
-                popt, _ = curve_fit(objective_full_notrend, xtrain, ytrain)
-                ytest = objective_full_notrend(xtest, *popt)
-            elif objective == 'trend':
-                popt, _ = curve_fit(objective_full, xtrain, ytrain)
-                ytest = objective_full(xtest, *popt)
-            else:
-                print("no valid objective")
+    if len(xtrain) > 19:
+        if objective == 'notrend':
+            popt, _ = curve_fit(objective_full_notrend, xtrain, ytrain)
             ytest = objective_full_notrend(xtest, *popt)
-            outarray[:-2] = ytest * 100
-            outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
-            outarray[-1:] = 1
-        elif len(xtrain) > 14:
-            if objective == 'notrend':
-                popt, _ = curve_fit(objective_advanced_notrend, xtrain, ytrain)
-                ytest = objective_advanced_notrend(xtest, *popt)
-            elif objective == 'trend':
-                popt, _ = curve_fit(objective_advanced, xtrain, ytrain)
-                ytest = objective_advanced(xtest, *popt)
-            else:
-                print("no valid objective")
-            outarray[:-2] = ytest * 100
-            outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
-            outarray[-1:] = 2
-        elif len(xtrain) > 9:
-            if objective == 'notrend':
-                popt, _ = curve_fit(objective_simple_notrend, xtrain, ytrain)
-                ytest = objective_simple_notrend(xtest, *popt)
-            elif objective == 'trend':
-                popt, _ = curve_fit(objective_simple, xtrain, ytrain)
-                ytest = objective_simple(xtest, *popt)
-            else:
-                print("no valid objective")
-            outarray[:-2] = ytest * 100
-            outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
-            outarray[-1:] = 3
+        elif objective == 'trend':
+            popt, _ = curve_fit(objective_full, xtrain, ytrain)
+            ytest = objective_full(xtest, *popt)
         else:
-            xtest.fill(-9999)
-            outarray[:-2] = xtest
-            outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
-            outarray[-1:] = 4
-    except:
-            xtest.fill(-9999)
-            outarray[:-2] = xtest
-            outarray[-2:-1] = np.nanstd(ytrain) / np.nanmean(ytrain) * 100
-            outarray[-1:] = 4
+            print("no valid objective")
+        ytest = objective_full_notrend(xtest, *popt)
+        outarray[:-2] = ytest * 100
+        # RMSE of residuals in percent
+        y_fitted = objective_full_notrend(xtrain, *popt)
+        residuals = ytrain - y_fitted
+        valid = y_fitted > 0
+        residuals_prc = np.full_like(residuals, np.nan)
+        residuals_prc[valid] = (residuals[valid] / y_fitted[valid]) * 100
+        outarray[-2:-1] = np.sqrt(np.nanmean(residuals_prc ** 2))
+        outarray[-1:] = 1
+
+    elif len(xtrain) > 14:
+        if objective == 'notrend':
+            popt, _ = curve_fit(objective_advanced_notrend, xtrain, ytrain)
+            ytest = objective_advanced_notrend(xtest, *popt)
+        elif objective == 'trend':
+            popt, _ = curve_fit(objective_advanced, xtrain, ytrain)
+            ytest = objective_advanced(xtest, *popt)
+        else:
+            print("no valid objective")
+        outarray[:-2] = ytest * 100
+        # RMSE der Residuen in Prozent
+        y_fitted = objective_advanced_notrend(xtrain, *popt)
+        residuals = ytrain - y_fitted
+        valid = y_fitted > 0
+        residuals_prc = np.full_like(residuals, np.nan)
+        residuals_prc[valid] = (residuals[valid] / y_fitted[valid]) * 100
+        outarray[-2:-1] = np.sqrt(np.nanmean(residuals_prc ** 2))
+        outarray[-1:] = 2
+
+    elif len(xtrain) > 9:
+        if objective == 'notrend':
+            popt, _ = curve_fit(objective_simple_notrend, xtrain, ytrain)
+            ytest = objective_simple_notrend(xtest, *popt)
+        elif objective == 'trend':
+            popt, _ = curve_fit(objective_simple, xtrain, ytrain)
+            ytest = objective_simple(xtest, *popt)
+        else:
+            print("no valid objective")
+        outarray[:-2] = ytest * 100
+        # RMSE der Residuen in Prozent
+        y_fitted = objective_simple_notrend(xtrain, *popt)
+        residuals = ytrain - y_fitted
+        valid = y_fitted > 0
+        residuals_prc = np.full_like(residuals, np.nan)
+        residuals_prc[valid] = (residuals[valid] / y_fitted[valid]) * 100
+        outarray[-2:-1] = np.sqrt(np.nanmean(residuals_prc ** 2))
+        outarray[-1:] = 3
+
+    else:
+        xtest.fill(-9999)
+        outarray[:-2] = xtest
+        outarray[-2:-1] = -9999
+        outarray[-1:] = 4
 
     # predict
     #
